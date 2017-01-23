@@ -15,7 +15,7 @@ CREATE TABLE assets(
 
 CREATE TABLE vehichles( 
 	vehichle_pk	SERIAL PRIMARY KEY,
-	asset_fk 	INTEGER REFERENCES assests (asset_pk) NOT NULL
+	asset_fk 	INTEGER REFERENCES assets (asset_pk) NOT NULL
 ); 
 
 CREATE TABLE facilities(
@@ -37,8 +37,8 @@ CREATE TABLE convoys(
 	request 	TEXT, 
 	source_fk	INTEGER REFERENCES facilities (facility_pk) NOT NULL, 
 	dest_fk		INTEGER REFERENCES facilities (facility_pk) NOT NULL, 
-	depart_dt	DATE,
-	arrive_dt	DATE
+	depart_dt	TIMESTAMP,
+	arrive_dt	TIMESTAMP
 ); 
 
 CREATE TABLE used_by(
@@ -66,7 +66,7 @@ CREATE TABLE roles(
 
 CREATE TABLE user_is(
 	user_fk 	INTEGER REFERENCES users (user_pk) NOT NULL, 
-	role_fk 	INTEGER REFERENCES roles (role_fk) NOT NULL
+	role_fk 	INTEGER REFERENCES roles (role_pk) NOT NULL
 ); 
 
 CREATE TABLE user_supports(
