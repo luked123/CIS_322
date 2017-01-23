@@ -7,7 +7,7 @@ CREATE TABLE products(
 
 CREATE TABLE assets(
 	asset_pk 	SERIAL PRIMARY KEY, 
-	product_fk 	INTEGER REFERENCES products (product_pk) NOT NULL, 
+	product_fk 	INTEGER REFERENCES products (product_pk), 
 	asset_tag	TEXT, 
 	description 	TEXT, 
 	alt_description TEXT
@@ -15,7 +15,7 @@ CREATE TABLE assets(
 
 CREATE TABLE vehichles( 
 	vehichle_pk	SERIAL PRIMARY KEY,
-	asset_fk 	INTEGER REFERENCES assets (asset_pk) NOT NULL
+	asset_fk 	INTEGER REFERENCES assets (asset_pk)
 ); 
 
 CREATE TABLE facilities(
@@ -26,8 +26,8 @@ CREATE TABLE facilities(
 ); 
 
 CREATE TABLE asset_at(
-	asset_fk 	INTEGER REFERENCES assets (asset_pk) NOT NULL,
-	facility_fk  	INTEGER REFERENCES facilities (facility_pk) NOT NULL,
+	asset_fk 	INTEGER REFERENCES assets (asset_pk),
+	facility_fk  	INTEGER REFERENCES facilities (facility_pk),
 	arrive_dt 	DATE, 
 	depart_dt 	DATE
 ); 
@@ -35,20 +35,20 @@ CREATE TABLE asset_at(
 CREATE TABLE convoys(
 	convoy_pk	SERIAL PRIMARY KEY,
 	request 	TEXT, 
-	source_fk	INTEGER REFERENCES facilities (facility_pk) NOT NULL, 
-	dest_fk		INTEGER REFERENCES facilities (facility_pk) NOT NULL, 
+	source_fk	INTEGER REFERENCES facilities (facility_pk), 
+	dest_fk		INTEGER REFERENCES facilities (facility_pk), 
 	depart_dt	TIMESTAMP,
 	arrive_dt	TIMESTAMP
 ); 
 
 CREATE TABLE used_by(
-	vehichle_fk	INTEGER REFERENCES vehichles (vehichle_pk) NOT NULL,
-	convoy_fk	INTEGER REFERENCES convoys (convoy_pk) NOT NULL
+	vehichle_fk	INTEGER REFERENCES vehichles (vehichle_pk),
+	convoy_fk	INTEGER REFERENCES convoys (convoy_pk)
 );
 
 CREATE TABLE asset_on(
-	asset_fk	INTEGER REFERENCES assets (asset_pk) NOT NULL, 
-	convoy_fk	INTEGER REFERENCES convoys (convoy_pk) NOT NULL,
+	asset_fk	INTEGER REFERENCES assets (asset_pk), 
+	convoy_fk	INTEGER REFERENCES convoys (convoy_pk),
 	load_dt 	DATE, 
 	unload_dt	DATE
 ); 
@@ -65,13 +65,13 @@ CREATE TABLE roles(
 );
 
 CREATE TABLE user_is(
-	user_fk 	INTEGER REFERENCES users (user_pk) NOT NULL, 
-	role_fk 	INTEGER REFERENCES roles (role_pk) NOT NULL
+	user_fk 	INTEGER REFERENCES users (user_pk), 
+	role_fk 	INTEGER REFERENCES roles (role_pk)
 ); 
 
 CREATE TABLE user_supports(
-	user_fk 	INTEGER REFERENCES users (user_pk) NOT NULL,
-	facility_fk 	INTEGER REFERENCES facilities (facility_pk) NOT NULL
+	user_fk 	INTEGER REFERENCES users (user_pk),
+	facility_fk 	INTEGER REFERENCES facilities (facility_pk)
 );
 
 CREATE TABLE levels(
@@ -88,9 +88,9 @@ CREATE TABLE compartments(
 
 CREATE TABLE security_tags(
 	tag_pk		SERIAL PRIMARY KEY,
-	level_fk 	INTEGER REFERENCES levels (level_pk) NOT NULL,
-	compartment_fk	INTEGER REFERENCES compartments (compartment_pk) NOT NULL,
-	user_fk 	INTEGER REFERENCES users (user_pk) NOT NULL, 
-	product_fk 	INTEGER REFERENCES products (product_pk) NOT NULL, 
-	asset_fk 	INTEGER REFERENCES assets (asset_pk) NOT NULL
+	level_fk 	INTEGER REFERENCES levels (level_pk),
+	compartment_fk	INTEGER REFERENCES compartments (compartment_pk),
+	user_fk 	INTEGER REFERENCES users (user_pk), 
+	product_fk 	INTEGER REFERENCES products (product_pk), 
+	asset_fk 	INTEGER REFERENCES assets (asset_pk)
 ); 
