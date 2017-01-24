@@ -10,4 +10,4 @@ The following files are located in the sql directory:
 		      -intake/export dates are not included in this version of the data migration. Date format was inconsistent througout the legacy data which made it difficult to streamline the process. A later version will incorporate this data.
 		      -Duplicate product names may appear in the products table. A later version will remove these duplicates.
 
-3. import_data 	      -downloads the legacy data files and runs format.py. Must include arguments "database name" "port number" 	  		
+3. import_data.sh     - Shell script that downloads the legacy data files and runs format.py. Must include arguments "database name" "port number" 	  		
