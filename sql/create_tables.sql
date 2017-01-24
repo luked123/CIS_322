@@ -1,3 +1,8 @@
+--Creator: Luke Donnelly
+--Project: LOST
+
+--SQL script to create tables for the LOST database
+
 CREATE TABLE products( 
 	product_pk 	SERIAL PRIMARY KEY, 
 	vendor		TEXT, 
