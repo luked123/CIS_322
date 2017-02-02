@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> Facility Inventory Report</title>
+    <style>
+        table, th,td {
+            width: 100%;
+            border: 1px solid black;
+            table-layout: fixed;
+        }
+    </style>
+</head>
+
+<body>
+    <h1> Facility Inventory Report</h1>
+
+    <table>
+        <tr>
+            <th> Facility</th>
+            <th> Asset Tag</th>
+            <th> Product</th>
+            <th> Arrive Date</th>
+            <th> Expunged Date</th>
+        </tr>
+        {% for row in session.table %}
+            <tr>
+                <td>{{ row.fcode }}</td>
+                <td>{{ row.asset }}</td>
+                <td>{{ row.product }}</td>
+                <td>{{ row.arrive }}</td>
+                <td>{{ row.depart }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
