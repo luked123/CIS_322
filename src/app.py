@@ -5,7 +5,7 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "A7/62%![1280TalA"
 
-conn = psycopg2.connect(dbname = 'lost', user='postgres', password='dudeman13', host='127.0.0.1', port='5432')
+conn = psycopg2.connect(dbname = 'lost', host='127.0.0.1', port='5432')
 cur = conn.cursor()
 
 
