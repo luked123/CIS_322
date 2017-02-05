@@ -23,6 +23,7 @@
             <th> Depart Date</th>
             <th> Arrive Date</th>
         </tr>
+        <!-- creates the output table -->
         {% for row in session.table %}
             <tr>
                 <td>{{ row.asset }}</td>
@@ -34,5 +35,11 @@
             </tr>
         {% endfor %}
     </table>
+    <br>
+    <br>
+    <form action="" method="post">
+        <input type="submit" name="button" value="Go Back">
+        <input type="submit" name="button" value="Logout">
+    </form>
 </body>
 </html>
