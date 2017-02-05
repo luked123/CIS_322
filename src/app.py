@@ -1,3 +1,6 @@
+# Web application for LOST database
+# Creator: Luke Donnelly
+
 from flask import Flask, render_template, request, url_for, redirect, session
 import psycopg2
 
@@ -5,7 +8,7 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "A7/62%![1280TalA"
 
-conn = psycopg2.connect(dbname='lost', user='postgres', password='dudeman13', host='127.0.0.1', port='5432')
+conn = psycopg2.connect(dbname='lost', host='127.0.0.1', port='5432')
 cur = conn.cursor()
 
 
@@ -239,6 +242,3 @@ def notlog():
 
     return render_template('notlogged.html')
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
