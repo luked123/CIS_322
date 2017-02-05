@@ -120,8 +120,6 @@ def facility():
     fcode = session['facility']
     date = session['date_f']
 
-    print(date)
-    print(date != '')
     # checks data fields
     if fcode != "" and date != "":  # Both fields are set
         data = (fcode, date,)
