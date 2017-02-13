@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title> Lost Service Calls </title>
+</head>
+<body>
+	<h2> Lost Service Calls </h2>
+	
+	<ul>
+		<li><strong>lost_key</strong></li>
+	       <ul>
+		   <li>URL: http://127.0.0.1:8080/rest/lost_key</li>
+		   <br>
+		   <li>Description:
+		   <br> Makes a request to return the LOST public key.
+		   <br> Returns key and result OK if passed, otherwise fails 
+		   </li>
+		   <br>
+		   <li>Usage:
+	           <br> Request takes no arguments. 
+		   </li> 
+	       </ul>
+	       <br>
+	       <li><strong>activate_user</strong></li>
+	       <ul>
+		   <li>URL: http://127.0.0.1:8080/rest/activate_user</li>
+		   <br>
+		   <li>Description:
+		   <br> Reactivates LOST access for a user or generates a new user account if needed.
+		   <br> Returns result OK if passed, otherwise fails.
+		   </li>
+		   <br> 
+		   <li>Usage:
+		   <br> Call is followed by username in which to activate/create
+		   <br> Example( http://127.0.0.1:8080/rest/activae_user larry)
+		   </li>
+	       </ul>
+	       <br>
+	       <li><strong>suspend_user</strong></li>
+	       <ul>
+		   <li>URL: http://127.0.0.1:8080/rest/suspend_user</li>
+		   <br>
+		   <li>Description:
+	           <br> Revokes access for a user. If the user does not exist or access has already been revoked, this call has no effect.
+		   <br> Returns result OK if passed, otherwise fails. 
+		   </li>
+		   <br>
+		   <li>Usage:
+	           <br> Call is followed by username in which to revoke.
+		   <br> Example( http://127.0.0.1:8080/rest/suspend_user larry)
+		   </li> 
+	       </ul>
+	       <br>
+	       <li><strong>list_products</strong></li>
+	       <ul>
+		   <li>URL: http://127.0.0.1:8080/rest/list_products</li>
+		   <br>
+		   <li>Description:
+	           <br>Requests a listing of all products in LOST based on a filter criteria. Additional filters may be provided and additional data may be returned. Asset information may not be provided by this call. 
+		   <br> Returns product information. 
+		   </li>
+		   <br>
+		   <li>Usage:
+		   <br>Call is followed by description of the product.
+		   <br> Example( http://127.0.0.1:8080/rest/list_products notepad)
+		   </li> 
+	       </ul>
+	       <br>
+	       <li><strong>add_products</strong></li>
+	       <ul>
+		   <li>URL: http://127.0.0.1:8080/rest/add_products</li>
+		   <br>
+		   <li>Description:
+		   <br> Adds products to LOST. Either all products are added during this call or none are. Duplicate products cause the request to fail. Returns OK if passed, otherwise fails.  	   
+		   </li>
+		   <br>
+		   <li>Usage:
+	           <br> Call is followed by a json list describing the new products.
+		   <br> Example( http://127.0.0.1:8080/rest/add_products "new_producsts": { {"vendor: "Dunder Mifflin", "description": "LOST letter size notepad", "alt_description": "Children's storybook", "compartments": ["adm:s"] } }
+		   </li> 
+	       </ul>
+	       <br> 
+	       <li><strong>add_asset</strong></li>
+	       <ul>
+		   <li>URL: http;//127.0.0.1:8080/rest/add_asset</li>
+		   <br>
+		   <li>Description:
+	           <br>Adds a new asset to LOST. Returns OK if passed otherwise fails. 
+		   </li>
+		   <br>
+		   <li>Usage:
+	           <br>Call is followed by a json list describing the new asset.
+		   <br>Example( http://127.0.0.1:8080/rest/add_asset { "vendor": "Dunder Mifflin", "description": "LOST letter size notepad", "compartments": ["wpn:ts"], "facility": "HQ"} 
+		   </li> 
+	       </ul>
+	</ul>
+</body>	
+
+</html>
