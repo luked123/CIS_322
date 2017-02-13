@@ -3,6 +3,7 @@
 
 from flask import Flask, render_template, request, url_for, redirect, session
 from config import dbname, dbhost, dbport
+import datetime
 import json
 import psycopg2
 
@@ -237,7 +238,14 @@ def lost_key():
    
     if request.method=='POST' and 'arguments' in request.form:
         req=json.loads(request.form['arguments'])
-    return true
+   
+    dat = dict()
+    dat['timestamp'] = datetime.datetime.utnow().isoformat()  #client didn't perform timestamp here
+    dat['result'] = 'OK'
+    dat['key'] = 'blahdeblah'
+    data = json.dumps(dat)
+    
+    return data
 
 
 @app.route('/rest/activate_user', methods=('POST', ))
@@ -245,7 +253,13 @@ def activate_user():
     
     if request.method=='POST' and 'arguments' in request.form:
         req=json.loads(request.form['arguments'])
-    return true
+    
+    dat = dict()
+    dat['timestamp'] =req['timestamp']
+    dat['result'] = 'OK' 
+    data  = json.dumps(dat)
+    
+    return data
 
 
 @app.route('/rest/suspend_user', methods=('POST', ))
@@ -258,6 +272,7 @@ def suspend_user():
     dat['timestamp'] = req['timestamp']
     dat['result'] = 'OK'
     data = json.dumps(dat)
+    
     return data
 
 
@@ -266,7 +281,20 @@ def list_products():
     
     if request.method=='POST' and 'arguments' in request.form:
         req=json.loads(request.form['arguments'])
-    return true
+    
+    dat = dict()
+    dat2 = dict()
+
+    dat2['vendor'] = 'Dunder Mifflin' 
+    dat2['compartment'] = 'LOST legal size notepad' 
+    dat2['description'] = '[]'  
+
+    dat['timestamp'] = req['timestamp']
+    dat['listing'] = dat2
+    
+    data = json.dumps(dat)
+
+    return data
 
 
 @app.route('/rest/add_products', methods=('POST', ))
@@ -274,7 +302,13 @@ def add_products():
     
     if request.method=='POST' and 'arguments' in request.form:
         req=json.loads(request.form['arguments'])
-    return true
+
+    dat = dict()
+    dat['timestamp'] = req['timestamp'] 
+    dat['result'] = 'OK' 
+    data = json.dumps(dat)
+
+    return data
 
 
 @app.route('/rest/add_asset', methods=('POST', ))
@@ -282,7 +316,13 @@ def add_asset():
 
     if request.method=='POST' and 'arguments' in request.form:
         req=json.loads(request.form['arguments'])
-    return true
+    
+    dat = dict()
+    dat['timestamp'] = req['timestamp']
+    dat['result'] = 'OK'
+    data = json.dumps(dat)
+
+    return data
 
 
 # End service calls ---------------------------------------------------------------------------------------------

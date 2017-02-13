@@ -31,8 +31,8 @@
 		   </li>
 		   <br> 
 		   <li>Usage:
-		   <br> Call is followed by username in which to activate/create
-		   <br> Example( http://127.0.0.1:8080/rest/activae_user larry)
+		   <br>JSON format of user info 
+		   <br> {"timestamp": timestamp, "username": username}
 		   </li>
 	       </ul>
 	       <br>
@@ -46,8 +46,8 @@
 		   </li>
 		   <br>
 		   <li>Usage:
-	           <br> Call is followed by username in which to revoke.
-		   <br> Example( http://127.0.0.1:8080/rest/suspend_user larry)
+	           <br> JSON format of user info
+		   <br> {"timestamp": timestamp, "username": username}
 		   </li> 
 	       </ul>
 	       <br>
@@ -61,8 +61,8 @@
 		   </li>
 		   <br>
 		   <li>Usage:
-		   <br>Call is followed by description of the product.
-		   <br> Example( http://127.0.0.1:8080/rest/list_products notepad)
+		   <br>JSON format containg product info
+		   <br>{"timestamp": timestamp, "vendor": vendor, "compartments": compartment}
 		   </li> 
 	       </ul>
 	       <br>
@@ -75,8 +75,8 @@
 		   </li>
 		   <br>
 		   <li>Usage:
-	           <br> Call is followed by a json list describing the new products.
-		   <br> Example( http://127.0.0.1:8080/rest/add_products "new_producsts": { {"vendor: "Dunder Mifflin", "description": "LOST letter size notepad", "alt_description": "Children's storybook", "compartments": ["adm:s"] } }
+	           <br> JSON format containing info on products to add 
+		   <br> {"timestamp": timestamp, "listing": [ "vendor": vendor, "description": description, "compartments": compartment}, {"vendor: vendor ... }, ... ]} 
 		   </li> 
 	       </ul>
 	       <br> 
@@ -89,8 +89,8 @@
 		   </li>
 		   <br>
 		   <li>Usage:
-	           <br>Call is followed by a json list describing the new asset.
-		   <br>Example( http://127.0.0.1:8080/rest/add_asset { "vendor": "Dunder Mifflin", "description": "LOST letter size notepad", "compartments": ["wpn:ts"], "facility": "HQ"} 
+	           <br>JSON format containing info on asset to add
+		   <br>{ "timestamp: timestamp, "vendor": vendor, "description": description, "compartments": compartment, "facility": facility}
 		   </li> 
 	       </ul>
 	</ul>
