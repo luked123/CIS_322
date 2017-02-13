@@ -2,13 +2,15 @@
 # Creator: Luke Donnelly
 
 from flask import Flask, render_template, request, url_for, redirect, session
+from config import dbname, dbhost, dbport
+import json
 import psycopg2
 
 
 app = Flask(__name__)
 app.secret_key = "A7/62%![1280TalA"
 
-conn = psycopg2.connect(dbname='lost', host='127.0.0.1', port='5432')
+conn = psycopg2.connect(dbname=dbname, host=dbhost, port=dbport)
 cur = conn.cursor()
 
 
@@ -21,6 +23,11 @@ def login():
         return redirect(url_for("filter"))
 
     return render_template('login.html')
+
+
+@app.route('/rest')
+def rest():
+    return render_template('rest.html')
 
 
 # filter screen
@@ -220,6 +227,65 @@ def transit():
     session['table'] = table
 
     return render_template('transit.html')
+
+
+
+# API service calls---------------------------------------------------------------------------------------------
+
+@app.route('/rest/lost_key', methods=('POST', ))
+def lost_key():
+   
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+    return true
+
+
+@app.route('/rest/activate_user', methods=('POST', ))
+def activate_user():
+    
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+    return true
+
+
+@app.route('/rest/suspend_user', methods=('POST', ))
+def suspend_user():
+    
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+
+    dat = dict()
+    dat['timestamp'] = req['timestamp']
+    dat['result'] = 'OK'
+    data = json.dumps(dat)
+    return data
+
+
+@app.route('/rest/list_products', methods=('POST', ))
+def list_products():
+    
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+    return true
+
+
+@app.route('/rest/add_products', methods=('POST', ))
+def add_products():
+    
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+    return true
+
+
+@app.route('/rest/add_asset', methods=('POST', ))
+def add_asset():
+
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
+    return true
+
+
+# End service calls ---------------------------------------------------------------------------------------------
 
 
 # logout screen
