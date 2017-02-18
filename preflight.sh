@@ -10,3 +10,4 @@ fi
 
 psql $1 -f $HOME/CIS_322/sql/create_tables.sql
 
+cp -r $HOME/CIS_322/src/* $HOME/wsgi/
