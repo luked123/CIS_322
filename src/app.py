@@ -41,9 +41,19 @@ def login():
             error = "username or password do not match"
             return redirect(url_for('error', error=error)) 
         else:
+            session['username'] = username
+            session['logged_in'] = True
             return redirect(url_for('dashboard'))
 
     return render_template('login.html') 
+
+
+# dashboard page
+@app.route('/dashboard')
+def dashboard():
+    if session.get('logged_in') != True:
+        return redirect(url_for('not_logged'))
+    return render_template('dashboard.html') 
 
 
 # create user page
@@ -94,12 +104,22 @@ def create_user():
     return render_template('create_user.html')
 
 
-# dashboard page
-@app.route('/dashboard')
-def dashboard():
-    return "dashboard" 
+# logout page
+@app.route('/logout')
+def logout():
+    session.clear()
+    return render_template('logout.html')
+
+
+# not logged
+@app.route('/not_logged')
+def not_logged():
+    return render_template('not_logged.html')
+
 
 # error page
 @app.route('/error')
 def error():
     return render_template('error.html', error=request.args.get('error'))
+
+
