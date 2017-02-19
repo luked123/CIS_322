@@ -1,6 +1,6 @@
 # preflight.sh 
 # Creator: Luke Donnelly
-# Assignment 6
+# Project: LOST	
 
 if [ "$#" -ne 1 ]; then
 	echo "Usage: bash preflight.sh <dbname>"
@@ -8,6 +8,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 
-psql $1 -f $HOME/CIS_322/sql/create_tables.sql
+psql $1 -f $HOME/CIS_322/sql/create_tables.sql  #run create_tables script
 
-cp -r $HOME/CIS_322/src/* $HOME/wsgi/
+cp -r $HOME/CIS_322/src/* $HOME/wsgi/           #copy src code to wsgi directory 
