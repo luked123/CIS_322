@@ -1,6 +1,6 @@
 # preflight.sh 
 # Creator: Luke Donnelly
-# Assignment 6
+# Project: LOST	
 
 if [ "$#" -ne 1 ]; then
 	echo "Usage: bash preflight.sh <dbname>"
