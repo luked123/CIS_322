@@ -8,6 +8,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 
-psql $1 -f $HOME/CIS_322/sql/create_tables.sql
+psql $1 -f  sql/create_tables.sql
 
-cp -r $HOME/CIS_322/src/* $HOME/wsgi/
+cp -r src/* $HOME/wsgi/
