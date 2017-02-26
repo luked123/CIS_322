@@ -229,10 +229,11 @@ def add_asset():
             cur.execute(create,(asset_tag,asset_desc,facility_name,asset_tag,facility_name,arrive_dt,))
             conn.commit()
 
-        
-
         return redirect(url_for('add_asset'))
-
+        
+        else: 
+            error="Asset already exists" 
+            return redirect(url_for('error', error=error)) 
 
     search = """
                 SELECT facility_name 
