@@ -1,7 +1,15 @@
 -- create_tables.sql 
 -- Creator: Luke Donnelly  
--- Assignment 6  
+-- Assignment 7  
 
+
+
+CREATE TABLE roles (
+	role_pk		SERIAL PRIMARY KEY,               -- Decided to create a role table. Roles will be handled through 
+							  -- a serial key. 
+							  -- Roles should be able to be manipulated easily and having its own  
+	role		varchar(32) UNIQUE             	  -- table allows that.		
+);
 
 
 CREATE TABLE users (
@@ -13,15 +21,18 @@ CREATE TABLE users (
 
 	password 	varchar(16) NOT NULL,	          -- Req doc states passwords cannot be longer than 16 chars.
 
-	role_fk		INTEGER REFERENCES roles (role_pk) 
+	role_fk		INTEGER REFERENCES roles (role_pk)  -- References roles table
 );
 
-CREATE TABLE roles (
-	role_pk		SERIAL PRIMARY KEY,               -- Decided to create a role table. Roles will be handled through 
-							  -- a serial key. 
-							  -- Roles should be able to be manipulated easily and having its own  
-	role		varchar(32) UNIQUE             	  -- table allows that.		
+
+CREATE TABLE facilities (
+	facility_pk	SERIAL PRIMARY KEY,                             -- Facilities are associated with a primary key. 
+
+	facility_name 	varchar(32) UNIQUE,                             -- Facility name must be unique.
+
+	facility_code	varchar(6)  UNIQUE                              -- Facility code must be unique.
 );
+
 
 CREATE TABLE assets ( 
 	asset_pk 	SERIAL PRIMARY KEY, 		  		-- Assets  are associated with a primary key.
@@ -32,14 +43,6 @@ CREATE TABLE assets (
 
 	asset_at	INTEGER REFERENCES facilities ( facility_pk)	-- Disposed will be apart of facilities as a DISPOSED										-- name, and facility code of 0.  Will be easy to see 
 );                                                                      -- all assets that have been dipsosed.  
-
-CREATE TABLE facilities (
-	facility_pk	SERIAL PRIMARY KEY,                             -- Facilities are associated with a primary key. 
-
-	facility_name 	varchar(32) UNIQUE,                             -- Facility name must be unique.
-
-	facility_code	varchar(6)  UNIQUE                              -- Facility code must be unique.
-);
 
 CREATE TABLE transit (
 	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References the asset in transit.
