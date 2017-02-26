@@ -9,25 +9,7 @@
 		<title> LOST Add Asset </title>
 		
 	</head>
-	<body>
-		<h1> Add an Asset </h1> 
-		<br> 
-		<form action="/add_asset"  method="post">
-			Asset Tag: <input type="text" maxlength="16" name="asset_tag">
-			Asset Description: <input type="text" name="asset_desc">
-			<br>
-			<br>
-			Facility At: <select name="facility_name"> 
-				{% for name in session.facilities %}
-				<option value="{{name}}"> {{name}} </option> 
-				{% endfor %} 
-			</select>
-			&nbsp; &nbsp; 
-		        Arrival Date: <input type="date" name="arrive_dt">
-			<br>	
-			<input type="submit" value="Submit"> 
-		</form>
-		<br>
+	<body>	
 		<h2> Current Assets</h2> 
 		<table>
 			<tr>
@@ -44,6 +26,23 @@
 				</tr>
 			{% endfor %}
 		</table>
+		<h2> Add an Asset </h2> 
+		<form action="/add_asset"  method="post">
+			Asset Tag: <input type="text" maxlength="16" name="asset_tag">
+			Asset Description: <input type="text" name="asset_desc">
+			<br>
+			<br>
+			Facility At: <select name="facility_name"> 
+				{% for name in session.facilities %}
+				<option value="{{name}}"> {{name}} </option> 
+				{% endfor %} 
+			</select>
+			&nbsp; &nbsp; 
+		        Arrival Date: <input type="date" name="arrive_dt">
+			<br>
+			<br>	
+			<input type="submit" value="Submit"> 
+		</form>
 	</body>
 </html>
 

@@ -192,9 +192,45 @@ def add_facility():
     return render_template('add_facility.html') 
 
 # add asset page
-@app.route('/add_asset')
+@app.route('/add_asset', methods=('POST','GET',))
 def add_asset(): 
     if request.method == 'POST':
+        asset_tag  = request.form['asset_tag']
+        asset_desc = request.form['asset_desc'] 
+        facility_name = request.form['facility_name'] 
+        arrive_dt     = request.form['arrive_dt'] 
+        
+        if asset_tag == "": 
+            error="asset tag cannot be blank"
+            return redirect(url_for('error', error=error))
+        if arrive_dt =="":
+            error="arrival date cannot be blank" 
+            return redirect(url_for('error', error=error))
+
+        search = """
+                    SELECT asset_tag 
+                    FROM assets
+                    WHERE asset_tag = %s
+                 """
+
+        cur.execute(search,(asset_tag,))
+        res = cur.fetchall()
+
+        if not res: 
+            create = """
+                        INSERT INTO assets (asset_tag, asset_desc, asset_at) 
+                        VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s)); 
+
+                        INSERT INTO transit (asset_fk, final_fk, arrival_dt) 
+                        VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
+                                (SELECT facility_pk FROM facilities WHERE facility_name = %s),
+                                %s); 
+                    """
+            cur.execute(create,(asset_tag,asset_desc,facility_name,asset_tag,facility_name,arrive_dt,))
+            conn.commit()
+
+        
+
         return redirect(url_for('add_asset'))
 
 
@@ -216,8 +252,10 @@ def add_asset():
     session['facilities'] = facilities
 
     search = """
-                SELECT asset_tag, asset_at, asset_desc
-                FROM assets; 
+                SELECT a.asset_tag, f.facility_name, a.asset_desc
+                FROM assets a
+                JOIN facilities f
+                ON asset_at = facility_pk; 
              """
     cur.execute(search)
 

@@ -9,15 +9,7 @@
 		<title> LOST Add Facility </title>
 		
 	</head>
-	<body>
-		<h1> Add a Facility </h1> 
-		<br> 
-		<form action="/add_facility"  method="post">
-			<input type="text" maxlength="32" name="facility_name" placeholder="facility common name">
-			<input type="text" maxlength="6" name="facility_code" placeholder="facility code">
-			<input type="submit" value="Submit"> 
-		</form>
-		<br>
+	<body> 
 		<h2> Current Facilities</h2> 
 		<table>
 			<tr>
@@ -32,6 +24,14 @@
 				</tr>
 			{% endfor %}
 		</table>
+		<br>
+		<h2> Add a Facility </h2>  
+		<form action="/add_facility"  method="post">
+			<input type="text" maxlength="32" name="facility_name" placeholder="facility common name">
+			<input type="text" maxlength="6" name="facility_code" placeholder="facility code">
+			<input type="submit" value="Submit"> 
+		</form>
+		<br>
 	</body>
 </html>
 
