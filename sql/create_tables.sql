@@ -41,8 +41,9 @@ CREATE TABLE assets (
 
 	asset_desc	TEXT, 						
 
-	asset_at	INTEGER REFERENCES facilities ( facility_pk)	-- Disposed will be apart of facilities as a DISPOSED										-- name, and facility code of 0.  Will be easy to see 
-);                                                                      -- all assets that have been dipsosed.  
+	asset_at	INTEGER REFERENCES facilities ( facility_pk)	-- Disposed will be apart of facilities as a DISPOSED										-- name, and facility code of NULL. Will be easy to see 
+);                                                                      -- all assets that have been dipsosed. May change this 
+									-- later. 
 
 CREATE TABLE transit (
 	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References the asset in transit.
@@ -56,3 +57,6 @@ CREATE TABLE transit (
 	arrival_dt 	DATE                                             -- Date it arrived at final. 
 ); 
 
+INSERT INTO facilities (facility_name, facility_code) VALUES ( 'DISPOSED', NULL);  --sets up a default facility DISPOSED 
+
+															

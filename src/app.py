@@ -179,7 +179,9 @@ def add_facility():
     res = cur.fetchall()
     facility_table = []
 
-    for row in res: 
+    for row in res:
+        if row[0] == "DISPOSED":
+            continue
         e = dict()
         e['facility_name'] = row[0]
         e['facility_code'] = row[1]
