@@ -1,0 +1,38 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head> 
+	<style>
+		table, th, td { 
+			border: 1px solid black;
+		}
+	</style>
+		<title> LOST Add Facility </title>
+		
+	</head>
+	<body>
+		<h1> Add a Facility </h1> 
+		<br> 
+		<form action="/add_facility"  method="post">
+			<input type="text" maxlength="32" name="facility_name" placeholder="facility common name">
+			<input type="text" maxlength="6" name="facility_code" placeholder="facility code">
+			<input type="submit" value="Submit"> 
+		</form>
+		<br>
+		<h2> Current Facilities</h2> 
+		<table>
+			<tr>
+				<th> Facility Name </th>
+				<th> Facility Code </th> 
+			</tr>
+			<!-- creates the ouput table -->
+			{% for row in session.facility_table %}
+				<tr>
+					<td>{{row.facility_name}}</td>
+					<td>{{row.facility_code}}</td>
+				</tr>
+			{% endfor %}
+		</table>
+	</body>
+</html>
+
+
