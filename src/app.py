@@ -191,6 +191,49 @@ def add_facility():
 
     return render_template('add_facility.html') 
 
+# add asset page
+@app.route('/add_asset')
+def add_asset(): 
+    if request.method == 'POST':
+        return redirect(url_for('add_asset'))
+
+
+    search = """
+                SELECT facility_name 
+                FROM facilities; 
+             """
+    cur.execute(search)
+
+    res = cur.fetchall()
+    facilities = []
+    
+    for row in res:
+        if row[0] == 'DISPOSED':
+            continue
+
+        facilities.append(row[0]) 
+
+    session['facilities'] = facilities
+
+    search = """
+                SELECT asset_tag, asset_at, asset_desc
+                FROM assets; 
+             """
+    cur.execute(search)
+
+    res = cur.fetchall()
+    asset_table = []
+
+    for row in res:
+        e = dict()
+        e['asset_tag']  = row[0]
+        e['asset_at']   = row[1]
+        e['asset_desc'] = row[2] 
+        asset_table.append(e)
+
+    session['asset_table'] = asset_table
+
+    return render_template('add_asset.html')
 
 # logout page
 @app.route('/logout')
