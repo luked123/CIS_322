@@ -81,9 +81,6 @@ def create_user():
         if " " in username: 
             error = "passwords cannot have spaces"
             return redirect(url_for('error', error=error))
-        if role == "":
-            error = "roles caanot be empty" 
-            return redirect(url_for('error', error=error))
             
         search = """
                     SELECT username
@@ -130,7 +127,8 @@ def create_user():
         else:                                                     
              error = "username already exists"
              return redirect(url_for('error', error=error)) 
-
+    
+    session['roles'] = ["Logistics Officer", "Facilities Officer"] 
 
     return render_template('create_user.html')
 
@@ -272,6 +270,60 @@ def add_asset():
     session['asset_table'] = asset_table
 
     return render_template('add_asset.html')
+
+
+# dispose asset page
+@app.route('/dispose_asset', methods=('POST', 'GET',))
+def dispose_asset():
+
+    if request.method == 'POST':
+        asset_tag = request.form['asset_tag']
+        dispose_dt = request.form['dispose_dt']
+
+        if asset_tag == "":
+            error = "asset tag cannot be blank"
+            return redirect(url_for('error', error=error))
+
+        if dispose_dt == "": 
+            error = "dipose date cannot be blank"
+            return redirect(url_for('error', error=error)) 
+
+        search = """
+                    SELECT a.asset_tag, f.facility_name 
+                    FROM assets a
+                    JOIN facilities f
+                    ON a.asset_at = f.facility_pk
+                    WHERE asset_tag = %s; 
+                 """
+
+        cur.execute(search,(asset_tag,))
+        res = cur.fetchone()
+
+        if not res:
+            error = "asset tag does not exist" 
+            return redirect(url_for('error', error=error)) 
+        
+        if res[1] == "DISPOSED":
+            error = "asset was already disposed"
+            return redirect(url_for('error', error=error)) 
+        else:
+            change = """
+                        UPDATE assets
+                        SET asset_at = (SELECT facility_pk FROM facilities WHERE facility_name = 'DISPOSED')
+                        WHERE asset_tag = %s; 
+
+                        UPDATE transit
+                        SET final_fk = (SELECT facility_pk FROM facilities WHERE facility_name = 'DISPOSED'),
+                            arrival_dt = NULL,
+                            depart_dt = %s
+                        WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s);
+                     """
+            cur.execute(change,(asset_tag, dispose_dt,asset_tag,))
+            conn.commit()
+
+            return redirect(url_for('dashboard')) 
+
+    return render_template('dispose_asset.html')
 
 # logout page
 @app.route('/logout')
