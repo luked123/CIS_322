@@ -67,6 +67,7 @@ def create_user():
     if request.method=='POST':
         username = request.form['username']                 
         password = request.form['password']
+        role     = request.form['role'] 
         
         if username == "":
             error = "username cannot be blank"
@@ -80,6 +81,9 @@ def create_user():
         if " " in username: 
             error = "passwords cannot have spaces"
             return redirect(url_for('error', error=error))
+        if role == "":
+            error = "roles caanot be empty" 
+            return redirect(url_for('error', error=error))
             
         search = """
                     SELECT username
@@ -90,22 +94,100 @@ def create_user():
         cur.execute(search,(username,))
         res = cur.fetchall()
 
-        if not res:                                          # if response is an empty list, insert username/password pair   
-            create = """
+        if not res:                                         # if response is an empty list, insert username/password pair   
+             create = """
                         INSERT INTO users (username, password) 
                         VALUES ( %s, %s);
                      """                                     # SQL query
-            cur.execute(create,(username, password,))
-            conn.commit()
-            return render_template('added.html')
+             cur.execute(create,(username, password,))
+    
+             search = """
+                        SELECT role 
+                        FROM roles
+                        WHERE role = %s; 
+                     """    
+             cur.execute(search,(role,))
+             res = cur.fetchall()
+
+             if not res: 
+                     create = """ 
+                                 INSERT INTO roles (role) 
+                                 VALUES (%s); 
+                              """
+                     cur.execute(create,(role,))
+
+             update = """
+                            UPDATE users 
+                            SET role_fk = (SELECT role_pk FROM roles WHERE role = %s) 
+                            WHERE username = %s; 
+                      """
+
+             cur.execute(update,(role, username,))
+             conn.commit()
+
+             return render_template('added.html')
 
         else:                                                     
-            error = "username already exists"
-            return redirect(url_for('error', error=error))    
+             error = "username already exists"
+             return redirect(url_for('error', error=error)) 
 
-        return  username
 
     return render_template('create_user.html')
+
+
+# add facility page
+@app.route('/add_facility', methods=('POST','GET', ))
+def add_facility(): 
+    if request.method == 'POST':
+        facility_name = request.form['facility_name']
+        facility_code = request.form['facility_code'] 
+        
+        if facility_name == "":
+            error = "facility common name cannot be blank"
+            return redirect(url_for('error', error=error))  
+        
+        if facility_code == "":
+            error = "facility code cannot be blank"
+            return redirect(url_for('error', error=error))  
+
+        search = """
+                    SELECT facility_name
+                    FROM facilities
+                    WHERE facility_name = %s OR facility_code =%s;  
+                 """
+        cur.execute(search,(facility_name,facility_code,))
+        res = cur.fetchall()
+
+        if not res: 
+            create = """
+                        INSERT INTO facilities (facility_name, facility_code)
+                        VALUES (%s, %s); 
+                     """
+            cur.execute(create,(facility_name,facility_code,))
+            conn.commit()
+            return redirect(url_for('add_facility'))
+        else:
+            error="facility name or facility code already exists"
+            return redirect(url_for('error', error=error))
+
+    search = """
+                SELECT facility_name, facility_code
+                FROM facilities; 
+             """
+    cur.execute(search)
+    
+    res = cur.fetchall()
+    facility_table = []
+
+    for row in res: 
+        e = dict()
+        e['facility_name'] = row[0]
+        e['facility_code'] = row[1]
+        facility_table.append(e)
+
+    session['facility_table'] = facility_table
+
+    return render_template('add_facility.html') 
 
 
 # logout page
