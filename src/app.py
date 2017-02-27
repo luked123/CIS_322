@@ -341,8 +341,9 @@ def asset_report():
                         SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
                         FROM assets a 
                         JOIN facilities f
-                        ON a.asset_at = f.facility_fk
+                        ON a.asset_at = f.facility_pk
                         JOIN transit t
+                        ON a.asset_pk = t.asset_fk
                         WHERE t.arrival_dt = %s OR t.depart_dt = %s;
                     """
 
@@ -368,9 +369,10 @@ def asset_report():
                         SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
                         FROM assets a 
                         JOIN facilities f
-                        ON a.asset_at = f.facility_fk
+                        ON a.asset_at = f.facility_pk
                         JOIN transit t
-                        WHERE f.facilty_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
+                        ON a.asset_pk = t.asset_fk
+                        WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
                     """
 
             cur.execute(search,(facility_name,date,date,))
@@ -384,7 +386,7 @@ def asset_report():
                 e['facility_name'] = row[2]
                 e['arrival_dt']    = row[3]
                 e['depart_dt']     = row[4] 
-            
+                asset_report_table.append(e) 
 
             session['asset_report_table'] = asset_report_table
 
