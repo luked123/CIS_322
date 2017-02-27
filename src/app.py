@@ -325,6 +325,73 @@ def dispose_asset():
 
     return render_template('dispose_asset.html')
 
+# asset report page
+@app.route('/asset_report', methods=('POST', 'GET',))
+def asset_report():
+    if request.method == 'POST':
+        facility_name = request.form['facility_name']
+        date          = request.form['date'] 
+    
+        if date == "":
+            error = "date cannot be blank"
+            return redirect(url_for('error', error=error)) 
+    
+        if facility_name == "": 
+            search = """
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
+                        FROM assets a 
+                        JOIN facilities f
+                        ON a.asset_at = f.facility_fk
+                        JOIN transit t
+                        WHERE t.arrival_dt = %s OR t.depart_dt = %s;
+                    """
+
+            cur.execute(search,(date,date,))
+            res = cur.fetchall() 
+        
+            asset_report_table = [] 
+            for row in res: 
+                e = dict()
+                e['asset_tag']     = row[0]
+                e['asset_desc']    = row[1]
+                e['facility_name'] = row[2]
+                e['arrival_dt']    = row[3]
+                e['depart_dt']     = row[4] 
+                asset_report_table.append(e)
+
+            session['asset_report_table'] =asset_report_table
+
+            return render_template('asset_report.html')
+
+        else:
+            search = """
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
+                        FROM assets a 
+                        JOIN facilities f
+                        ON a.asset_at = f.facility_fk
+                        JOIN transit t
+                        WHERE f.facilty_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
+                    """
+
+            cur.execute(search,(facility_name,date,date,))
+            res = cur.fetchall() 
+            asset_report_table = []
+
+            for row in res: 
+                e = dict()
+                e['asset_tag']     = row[0]
+                e['asset_desc']    = row[1]
+                e['facility_name'] = row[2]
+                e['arrival_dt']    = row[3]
+                e['depart_dt']     = row[4] 
+            
+
+            session['asset_report_table'] = asset_report_table
+
+            return render_template('asset_report.html')
+
+    return render_template('asset_report.html')
+
 # logout page
 @app.route('/logout')
 def logout():
