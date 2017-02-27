@@ -64,10 +64,10 @@ def login():
 @app.route('/dashboard')
 def dashboard():
 
-    # GET method
     if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
         return redirect(url_for('not_logged'))
 
+    # GET method. 
     return render_template('dashboard.html') 
 
 

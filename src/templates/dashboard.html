@@ -5,7 +5,20 @@
 	</head>
 	<body>
 		<h1>Connected as {{session.username}}</h1>
-		<br>
+		<br>	
+		<form action="/add_facility" style="float: left">        <!-- Want to add space between forms not sure how --> 
+			<input class="btn btn-default" type="submit" value="Add Facility">
+		</form>
+		<form action="/add_asset" style = "float: left">
+			<input class="btn btn-default" type="submit" value="Add Asset">
+		</form>
+		<form action="/dispose_asset" style="float: left">
+			<input class="btn btn-default" type="submit" value="Dispose Asset">
+		</form>
+		<form action="/asset_report" style="float: left">
+			<input class="btn btn-default" type="submit" value="Asset Report">
+		</form> 
+		<br><br>
 		<form action="/logout">
 			<input class="btn btn-default" type="submit" value="Logout">
 		</form>
