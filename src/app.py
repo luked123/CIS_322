@@ -308,6 +308,10 @@ def dispose_asset():
 
     if session.get('logged_in') != True:                    # must be logged in to visit this page
         return redirect(url_for('not_logged'))
+    
+    if session['user_role'] != "Logistics Officer":
+        error = "Only Logistics Officers have access to this page"
+        return redirect(url_for('error', error=error))
 
     #POST method.
     if request.method == 'POST':
