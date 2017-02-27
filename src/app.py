@@ -16,60 +16,72 @@ conn = psycopg2.connect(dbname=dbname, host=dbhost, port=dbport)
 cur = conn.cursor()
 
 
-#login page
+# login page.
 @app.route('/')
 @app.route('/login', methods=('POST', 'GET', ))
 def login():
+
+    # POST method.
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password'] 
 
-        if username == "":                                  # cannot enter blank username
+        if username == "":                                    # Cannot enter blank username.
             error = "username or password do not match"
             return redirect(url_for('error', error=error)) 
-        if password == "":                                  # cannot enter blank password
+        if password == "":                                    # Cannot enter blank password.
             error = "username or password do not match"
             return redirect(url_for('error', error=error)) 
 
         check = """                                         
-                    SELECT username, password 
-                    FROM users
+                    SELECT u.username, r.role
+                    FROM users u
+                    JOIN roles r
+                    ON u.role_fk = r.role_pk
                     WHERE username = %s AND password = %s; 
-                """                                         #SQL query
+                """                                            # SQL checks the database for matching username and password.
       
         cur.execute(check,(username, password,))
-        res = cur.fetchall()
-        
+        res = cur.fetchone()
                            
-        if not res:                                         # check if response is an empty list, if it is there was no match
+        if not res:                                           # Check if response is an empty list, if it is there was no match.
             error = "username or password do not match"
             return redirect(url_for('error', error=error)) 
+
         else:
-            session['username'] = username                  # there was match, start session
-            session['logged_in'] = True                     # logged in
+            session['username']  = res[0]                    # There was a match, start session.
+            session['user_role'] = res[1]                    # Users role. 
+            session['logged_in'] = True                      # Logged in. 
+            
             return redirect(url_for('dashboard'))
+    
+    #GET method.
 
     return render_template('login.html') 
 
 
-# dashboard page
+# dashboard page.
 @app.route('/dashboard')
 def dashboard():
-    if session.get('logged_in') != True:                    # must be logged in to be in dashboard
+
+    # GET method
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
         return redirect(url_for('not_logged'))
+
     return render_template('dashboard.html') 
 
 
-# create_user page
+# create_user page.
 @app.route('/create_user', methods=('POST', 'GET', ))
 def create_user():
-    
+
+    # POST method. 
     if request.method=='POST':
         username = request.form['username']                 
         password = request.form['password']
         role     = request.form['role'] 
         
-        if username == "":
+        if username == "":                                         
             error = "username cannot be blank"
             return redirect(url_for('error', error=error))  
         if " " in username: 
@@ -86,40 +98,25 @@ def create_user():
                     SELECT username
                     FROM users
                     WHERE username = %s; 
-                 """                                         # SQL query
+                 """                                             # SQL searchs database for username entered.
        
         cur.execute(search,(username,))
         res = cur.fetchall()
 
-        if not res:                                         # if response is an empty list, insert username/password pair   
+        if not res:                                              # If response is an empty list, insert username/password pair.
              create = """
                         INSERT INTO users (username, password) 
                         VALUES ( %s, %s);
-                     """                                     # SQL query
+                     """                                         # SQL create username / password pair.
              cur.execute(create,(username, password,))
-    
-             search = """
-                        SELECT role 
-                        FROM roles
-                        WHERE role = %s; 
-                     """    
-             cur.execute(search,(role,))
-             res = cur.fetchall()
-
-             if not res: 
-                     create = """ 
-                                 INSERT INTO roles (role) 
-                                 VALUES (%s); 
-                              """
-                     cur.execute(create,(role,))
 
              update = """
                             UPDATE users 
                             SET role_fk = (SELECT role_pk FROM roles WHERE role = %s) 
                             WHERE username = %s; 
-                      """
+                      """                                        # SQL updates user with correct role. 
 
-             cur.execute(update,(role, username,))
+             cur.execute(update,(role, username,))              
              conn.commit()
 
              return render_template('added.html')
@@ -127,58 +124,67 @@ def create_user():
         else:                                                     
              error = "username already exists"
              return redirect(url_for('error', error=error)) 
-    
-    session['roles'] = ["Logistics Officer", "Facilities Officer"] 
+
+    # GET method
+    session['roles'] = ["Logistics Officer", "Facilities Officer"]     # Current roles at LOST DB.
 
     return render_template('create_user.html')
 
 
-# add facility page
+# add_facility page.
 @app.route('/add_facility', methods=('POST','GET', ))
-def add_facility(): 
+def add_facility():
+
+    if session.get('logged_in') != True:                               # Must be logged in to visit this page. 
+        return redirect(url_for('not_logged'))
+
+    # POST method.
     if request.method == 'POST':
-        facility_name = request.form['facility_name']
+        facility_name = request.form['facility_name']         
         facility_code = request.form['facility_code'] 
         
-        if facility_name == "":
+        if facility_name == "":                                 
             error = "facility common name cannot be blank"
             return redirect(url_for('error', error=error))  
-        
         if facility_code == "":
-            error = "facility code cannot be blank"
+            error = "facility code cannot be blank"                     
             return redirect(url_for('error', error=error))  
 
         search = """
                     SELECT facility_name
                     FROM facilities
                     WHERE facility_name = %s OR facility_code =%s;  
-                 """
+                 """                                                   #SQL search DB for matching facility names.
+
         cur.execute(search,(facility_name,facility_code,))
         res = cur.fetchall()
 
-        if not res: 
+        if not res:                                                            # If no match, create facility.
             create = """
                         INSERT INTO facilities (facility_name, facility_code)
                         VALUES (%s, %s); 
-                     """
+                     """                                                        # SQL create facility.
             cur.execute(create,(facility_name,facility_code,))
             conn.commit()
+
             return redirect(url_for('add_facility'))
+
         else:
-            error="facility name or facility code already exists"
+            error="facility name or facility code already exists"                # Match, do not create facility.
             return redirect(url_for('error', error=error))
 
+    # GET method. 
     search = """
                 SELECT facility_name, facility_code
                 FROM facilities; 
-             """
+            """                                              # SQL search for all current facilities.
     cur.execute(search)
-    
     res = cur.fetchall()
+
     facility_table = []
 
     for row in res:
-        if row[0] == "DISPOSED":
+        if row[0] == "DISPOSED":                             # Don't display disposed facility. 
             continue
         e = dict()
         e['facility_name'] = row[0]
@@ -189,9 +195,15 @@ def add_facility():
 
     return render_template('add_facility.html') 
 
-# add asset page
+
+# add_asset page.
 @app.route('/add_asset', methods=('POST','GET',))
-def add_asset(): 
+def add_asset():
+
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page.
+        return redirect(url_for('not_logged'))
+
+    #POST method. 
     if request.method == 'POST':
         asset_tag  = request.form['asset_tag']
         asset_desc = request.form['asset_desc'] 
@@ -205,16 +217,16 @@ def add_asset():
             error="arrival date cannot be blank" 
             return redirect(url_for('error', error=error))
 
-        search = """
+        check = """
                     SELECT asset_tag 
                     FROM assets
                     WHERE asset_tag = %s
-                 """
-
-        cur.execute(search,(asset_tag,))
+                 """                                       # SQL check if asset tag is not a duplicate.
+                                                          
+        cur.execute(check,(asset_tag,))
         res = cur.fetchall()
 
-        if not res: 
+        if not res:                                        # No match, create asset.   
             create = """
                         INSERT INTO assets (asset_tag, asset_desc, asset_at) 
                         VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s)); 
@@ -223,19 +235,21 @@ def add_asset():
                         VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
                                 %s); 
-                    """
+                    """                                                                                    # SQL create asset. 
             cur.execute(create,(asset_tag,asset_desc,facility_name,asset_tag,facility_name,arrive_dt,))
             conn.commit()
 
             return redirect(url_for('add_asset'))
-        else: 
+
+        else:                                               # Match, do not create asset. 
             error="Asset already exists" 
             return redirect(url_for('error', error=error)) 
 
+    # GET method.
     search = """
                 SELECT facility_name 
                 FROM facilities; 
-             """
+             """                                                      # SQL search for every facility in DB.
     cur.execute(search)
 
     res = cur.fetchall()
@@ -244,17 +258,16 @@ def add_asset():
     for row in res:
         if row[0] == 'DISPOSED':
             continue
-
         facilities.append(row[0]) 
 
-    session['facilities'] = facilities
+    session['facilities'] = facilities                                 # Used for select drop down menu in html. 
 
     search = """
                 SELECT a.asset_tag, f.facility_name, a.asset_desc
                 FROM assets a
                 JOIN facilities f
                 ON asset_at = facility_pk; 
-             """
+             """                                                       # SQL search for every asset in DB.
     cur.execute(search)
 
     res = cur.fetchall()
@@ -272,10 +285,14 @@ def add_asset():
     return render_template('add_asset.html')
 
 
-# dispose asset page
+# dispose_asset page. 
 @app.route('/dispose_asset', methods=('POST', 'GET',))
 def dispose_asset():
 
+    if session.get('logged_in') != True:                    # must be logged in to visit this page
+        return redirect(url_for('not_logged'))
+
+    #POST method.
     if request.method == 'POST':
         asset_tag = request.form['asset_tag']
         dispose_dt = request.form['dispose_dt']
@@ -283,7 +300,6 @@ def dispose_asset():
         if asset_tag == "":
             error = "asset tag cannot be blank"
             return redirect(url_for('error', error=error))
-
         if dispose_dt == "": 
             error = "dipose date cannot be blank"
             return redirect(url_for('error', error=error)) 
@@ -294,18 +310,18 @@ def dispose_asset():
                     JOIN facilities f
                     ON a.asset_at = f.facility_pk
                     WHERE asset_tag = %s; 
-                 """
-
-        cur.execute(search,(asset_tag,))
+                 """                                             # SQL search DB for asset tag. 
+        cur.execute(search,(asset_tag,))                    
         res = cur.fetchone()
 
-        if not res:
+        if not res:                                              # No match, do nothing.
             error = "asset tag does not exist" 
             return redirect(url_for('error', error=error)) 
         
-        if res[1] == "DISPOSED":
+        if res[1] == "DISPOSED":                                 # Disposed already, do nothing. 
             error = "asset was already disposed"
             return redirect(url_for('error', error=error)) 
+
         else:
             change = """
                         UPDATE assets
@@ -317,17 +333,24 @@ def dispose_asset():
                             arrival_dt = NULL,
                             depart_dt = %s
                         WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s);
-                     """
+                     """                                                                     #SQL change asset to disposed. 
             cur.execute(change,(asset_tag, dispose_dt,asset_tag,))
             conn.commit()
 
             return redirect(url_for('dashboard')) 
-
+    
+    # GET method. 
     return render_template('dispose_asset.html')
 
-# asset report page
+
+# asset_report page.
 @app.route('/asset_report', methods=('POST', 'GET',))
 def asset_report():
+
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
+        return redirect(url_for('not_logged'))
+
+    # POST method.
     if request.method == 'POST':
         facility_name = request.form['facility_name']
         date          = request.form['date'] 
@@ -336,7 +359,7 @@ def asset_report():
             error = "date cannot be blank"
             return redirect(url_for('error', error=error)) 
     
-        if facility_name == "": 
+        if facility_name == "":                                    
             search = """
                         SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
                         FROM assets a 
@@ -345,12 +368,13 @@ def asset_report():
                         JOIN transit t
                         ON a.asset_pk = t.asset_fk
                         WHERE t.arrival_dt = %s OR t.depart_dt = %s;
-                    """
+                    """                                                 # SQL search assets matching date in all facilities.
 
             cur.execute(search,(date,date,))
             res = cur.fetchall() 
         
             asset_report_table = [] 
+
             for row in res: 
                 e = dict()
                 e['asset_tag']     = row[0]
@@ -364,7 +388,7 @@ def asset_report():
 
             return render_template('asset_report.html')
 
-        else:
+        else:                                                       # Specific facility name. 
             search = """
                         SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
                         FROM assets a 
@@ -373,7 +397,7 @@ def asset_report():
                         JOIN transit t
                         ON a.asset_pk = t.asset_fk
                         WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
-                    """
+                    """                                              # SQL search assets in specific facility matching date. 
 
             cur.execute(search,(facility_name,date,date,))
             res = cur.fetchall() 
@@ -391,23 +415,41 @@ def asset_report():
             session['asset_report_table'] = asset_report_table
 
             return render_template('asset_report.html')
+    
+    #GET method
+    search = """
+                SELECT facility_name 
+                FROM facilities; 
+             """                                                      # SQL search for every facility in DB.
+    cur.execute(search)
+
+    res = cur.fetchall()
+    facilities = []
+    
+    for row in res:
+        if row[0] == 'DISPOSED':
+            continue
+        facilities.append(row[0]) 
+
+    session['facilities'] = facilities                                 # Used for select drop down menu in html.
 
     return render_template('asset_report.html')
 
-# logout page
+
+# logout page.
 @app.route('/logout')
 def logout():
     session.clear()
     return render_template('logout.html')
 
 
-# not_logged page
+# not_logged page.
 @app.route('/not_logged')
 def not_logged():
     return render_template('not_logged.html')
 
 
-# error page
+# error page.
 @app.route('/error')
 def error():
     return render_template('error.html', error=request.args.get('error'))
