@@ -34,11 +34,11 @@ def login():
             return redirect(url_for('error', error=error)) 
 
         check = """                                         
-                    SELECT u.username, r.role
+                    SELECT u.username, r.role, u.password
                     FROM users u
                     JOIN roles r
                     ON u.role_fk = r.role_pk
-                    WHERE username = %s AND password = %s; 
+                    WHERE u.username = %s AND u.password = %s; 
                 """                                            # SQL checks the database for matching username and password.
       
         cur.execute(check,(username, password,))
@@ -93,7 +93,23 @@ def create_user():
         if " " in username: 
             error = "passwords cannot have spaces"
             return redirect(url_for('error', error=error))
-            
+        
+        check = """
+                    SELECT role 
+                    FROM roles
+                    WHERE role = %s; 
+                """                                             # SQL check if role is in DB
+        cur.execute(check,(role,))
+        res = cur.fetchone()
+
+        if not res: 
+            create = """
+                        INSERT INTO roles (role)
+                        VALUES (%s); 
+                     """                                        # SQL create role 
+            cur.execute(create,(role,))
+            conn.commit()
+
         search = """
                     SELECT username
                     FROM users
@@ -101,7 +117,7 @@ def create_user():
                  """                                             # SQL searchs database for username entered.
        
         cur.execute(search,(username,))
-        res = cur.fetchall()
+        res = cur.fetchone()
 
         if not res:                                              # If response is an empty list, insert username/password pair.
              create = """
@@ -109,6 +125,7 @@ def create_user():
                         VALUES ( %s, %s);
                      """                                         # SQL create username / password pair.
              cur.execute(create,(username, password,))
+             conn.commit()
 
              update = """
                             UPDATE users 
