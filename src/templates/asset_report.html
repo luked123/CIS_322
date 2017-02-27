@@ -1,0 +1,51 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head> 
+	<style>
+		table, th, td { 
+			border: 1px solid black;
+		}
+	</style>
+		<title> LOST Asset Report </title>
+		
+	</head>
+	<body>	
+		<form action="/asset_report"  method="post">
+			Facility: <select name="facility_name"> 
+				<option value=""> </option>
+				{% for name in session.facilities %}
+				<option value="{{name}}"> {{name}} </option> 
+				{% endfor %} 
+			</select>
+			&nbsp; &nbsp; 
+		        Date: <input type="date" name="date">
+			<br>
+			<br>	
+			<input type="submit" value="Submit"> 
+		</form>
+
+		<h2> Asset Report</h2> 
+		<table>
+			<tr>
+				<th> Asset Tag </th>
+				<th> Asset Description </th> 
+				<th> Facility </th> 
+				<th> Arrival Date</th>
+				<th> Departure/Disposal Date</th> 
+
+			</tr>
+			<!-- creates the ouput table -->
+			{% for row in session.asset_report_table %}
+				<tr>
+					<td>{{row.asset_tag}}</td>
+					<td>{{row.asset_desc}}</td>
+					<td>{{row.facility_name}}</td>
+				        <td>{{row.arrival_dt}}</td>
+					<td>{{row.depart_dt}}</td>	
+				</tr>
+			{% endfor %}
+		</table>
+	</body>
+</html>
+
+
