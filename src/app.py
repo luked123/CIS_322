@@ -11,7 +11,6 @@ import psycopg2
 app = Flask(__name__)
 app.secret_key = "A7/62%![1280Ta1A"
 
-
 conn = psycopg2.connect(dbname=dbname, host=dbhost, port=dbport)
 cur = conn.cursor()
 
@@ -20,7 +19,6 @@ cur = conn.cursor()
 @app.route('/')
 @app.route('/login', methods=('POST', 'GET', ))
 def login():
-
     # POST method.
     if request.method == 'POST':
         username = request.form['username']
@@ -40,30 +38,25 @@ def login():
                     ON u.role_fk = r.role_pk
                     WHERE u.username = %s AND u.password = %s; 
                 """                                            # SQL checks the database for matching username and password.
-      
         cur.execute(check,(username, password,))
         res = cur.fetchone()
                            
         if not res:                                           # Check if response is an empty list, if it is there was no match.
             error = "username or password do not match"
             return redirect(url_for('error', error=error)) 
-
         else:
             session['username']  = res[0]                    # There was a match, start session.
             session['user_role'] = res[1]                    # Users role. 
             session['logged_in'] = True                      # Logged in. 
-            
             return redirect(url_for('dashboard'))
     
     #GET method.
-
     return render_template('login.html') 
 
 
 # dashboard page.
 @app.route('/dashboard')
 def dashboard():
-
     if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
         return redirect(url_for('not_logged'))
 
@@ -74,7 +67,6 @@ def dashboard():
 # create_user page.
 @app.route('/create_user', methods=('POST', 'GET', ))
 def create_user():
-
     # POST method. 
     if request.method=='POST':
         username = request.form['username']                 
@@ -115,7 +107,6 @@ def create_user():
                     FROM users
                     WHERE username = %s; 
                  """                                             # SQL searchs database for username entered.
-       
         cur.execute(search,(username,))
         res = cur.fetchone()
 
@@ -135,23 +126,19 @@ def create_user():
 
              cur.execute(update,(role, username,))              
              conn.commit()
-
              return render_template('added.html')
-
         else:                                                     
              error = "username already exists"
              return redirect(url_for('error', error=error)) 
 
     # GET method
     session['roles'] = ["Logistics Officer", "Facilities Officer"]     # Current roles at LOST DB.
-
     return render_template('create_user.html')
 
 
 # add_facility page.
 @app.route('/add_facility', methods=('POST','GET', ))
 def add_facility():
-
     if session.get('logged_in') != True:                               # Must be logged in to visit this page. 
         return redirect(url_for('not_logged'))
 
@@ -183,7 +170,6 @@ def add_facility():
                      """                                                        # SQL create facility.
             cur.execute(create,(facility_name,facility_code,))
             conn.commit()
-
             return redirect(url_for('add_facility'))
 
         else:
@@ -208,7 +194,7 @@ def add_facility():
         e['facility_code'] = row[1]
         facility_table.append(e)
 
-    session['facility_table'] = facility_table
+    session['facility_table'] = facility_table               
 
     return render_template('add_facility.html') 
 
@@ -216,7 +202,6 @@ def add_facility():
 # add_asset page.
 @app.route('/add_asset', methods=('POST','GET',))
 def add_asset():
-
     if session.get('logged_in') != True:                    # Must be logged in to visit this page.
         return redirect(url_for('not_logged'))
 
@@ -238,8 +223,7 @@ def add_asset():
                     SELECT asset_tag 
                     FROM assets
                     WHERE asset_tag = %s
-                 """                                       # SQL check if asset tag is not a duplicate.
-                                                          
+                 """                                       # SQL check if asset tag is not a duplicate. 
         cur.execute(check,(asset_tag,))
         res = cur.fetchall()
 
@@ -255,10 +239,8 @@ def add_asset():
                     """                                                                                    # SQL create asset. 
             cur.execute(create,(asset_tag,asset_desc,facility_name,asset_tag,facility_name,arrive_dt,))
             conn.commit()
-
             return redirect(url_for('add_asset'))
-
-        else:                                               # Match, do not create asset. 
+        else:                                                         # Match, do not create asset. 
             error="Asset already exists" 
             return redirect(url_for('error', error=error)) 
 
@@ -268,8 +250,8 @@ def add_asset():
                 FROM facilities; 
              """                                                      # SQL search for every facility in DB.
     cur.execute(search)
-
     res = cur.fetchall()
+    
     facilities = []
     
     for row in res:
@@ -286,8 +268,8 @@ def add_asset():
                 ON asset_at = facility_pk; 
              """                                                       # SQL search for every asset in DB.
     cur.execute(search)
-
     res = cur.fetchall()
+   
     asset_table = []
 
     for row in res:
@@ -305,10 +287,8 @@ def add_asset():
 # dispose_asset page. 
 @app.route('/dispose_asset', methods=('POST', 'GET',))
 def dispose_asset():
-
     if session.get('logged_in') != True:                    # must be logged in to visit this page
         return redirect(url_for('not_logged'))
-    
     if session['user_role'] != "Logistics Officer":
         error = "Only Logistics Officers have access to this page"
         return redirect(url_for('error', error=error))
@@ -338,11 +318,9 @@ def dispose_asset():
         if not res:                                              # No match, do nothing.
             error = "asset tag does not exist" 
             return redirect(url_for('error', error=error)) 
-        
         if res[1] == "DISPOSED":                                 # Disposed already, do nothing. 
             error = "asset was already disposed"
             return redirect(url_for('error', error=error)) 
-
         else:
             change = """
                         UPDATE assets
@@ -357,7 +335,6 @@ def dispose_asset():
                      """                                                                     #SQL change asset to disposed. 
             cur.execute(change,(asset_tag, dispose_dt,asset_tag,))
             conn.commit()
-
             return redirect(url_for('dashboard')) 
     
     # GET method. 
@@ -367,7 +344,6 @@ def dispose_asset():
 # asset_report page.
 @app.route('/asset_report', methods=('POST', 'GET',))
 def asset_report():
-
     if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
         return redirect(url_for('not_logged'))
 
@@ -379,7 +355,7 @@ def asset_report():
         if date == "":
             error = "date cannot be blank"
             return redirect(url_for('error', error=error)) 
-    
+
         if facility_name == "":                                    
             search = """
                         SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
@@ -390,7 +366,6 @@ def asset_report():
                         ON a.asset_pk = t.asset_fk
                         WHERE t.arrival_dt = %s OR t.depart_dt = %s;
                     """                                                 # SQL search assets matching date in all facilities.
-
             cur.execute(search,(date,date,))
             res = cur.fetchall() 
         
@@ -419,9 +394,9 @@ def asset_report():
                         ON a.asset_pk = t.asset_fk
                         WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
                     """                                              # SQL search assets in specific facility matching date. 
-
             cur.execute(search,(facility_name,date,date,))
             res = cur.fetchall() 
+
             asset_report_table = []
 
             for row in res: 
@@ -443,8 +418,8 @@ def asset_report():
                 FROM facilities; 
              """                                                      # SQL search for every facility in DB.
     cur.execute(search)
-
     res = cur.fetchall()
+
     facilities = []
     
     for row in res:
