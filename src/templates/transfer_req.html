@@ -1,0 +1,29 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head> 
+		<title>LOST Transfer Request </title>
+	</head>
+	<body>	
+		<h2> Transfer Request </h2>  &nbsp; &nbsp; <h2> Connected as {{session.username}} </h2> 
+		<form action="/transfer_req"  method="post">
+			Asset Tag: <input type="text" maxlength="16" name="asset_tag">
+			&nbsp; &nbsp; 
+			Source Facility: <select name="source"> 
+				{% for name in session.facilities %}
+				<option value="{{name}}"> {{name}} </option> 
+				{% endfor %} 
+			</select>
+			&nbsp; &nbsp; 
+			Destination Facility: <select name="destination"> 
+				{% for name in session.facilities %}
+				<option value="{{name}}"> {{name}} </option> 
+				{% endfor %} 
+			</select>
+			<br>
+			<br>	
+			<input type="submit" value="Submit"> 
+		</form>
+	</body>
+</html>
+
+
