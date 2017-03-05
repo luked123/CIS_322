@@ -71,13 +71,13 @@ CREATE TABLE transfer_req (
 
 	dest_fk		INTEGER REFERENCES facilities ( facility_pk),    -- Where the asset is requested to go.
 
-	req_dt		DATE, 						 -- Date request was made. 
+	req_dt		TIMESTAMP, 						 -- Date request was made. 
 
 	fac_fk		INTEGER REFERENCES users ( user_pk),             -- Facilities officer that approve/ deny request.   
 
 	approved_bool	BOOLEAN,                                         -- Boolean to check if a request was approved.
 
-	approve_dt 	DATE                                             -- Approve date.  
+	approve_dt 	TIMESTAMP                                             -- Approve date.  
 );
 
 
