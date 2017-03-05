@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect, session
 from config import dbname, dbhost, dbport
-import datetime 
+from datetime import date
 import json
 import psycopg2 
 
@@ -430,6 +430,101 @@ def asset_report():
     session['facilities'] = facilities                                 # Used for select drop down menu in html.
 
     return render_template('asset_report.html')
+
+
+# transfer_report page. 
+@app.route('/transfer_report')
+def transfer_report():
+    return
+
+
+# transfer_req page. 
+@app.route('/transfer_req', methods=('POST','GET',))
+def transfer_req(): 
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
+        return redirect(url_for('not_logged'))
+    if session['user_role'] != "Logistics Officer":
+        error = "Only Logistics Officers have access to this page"
+        return redirect(url_for('error', error=error))
+    
+    # POST method. 
+    if request.method == 'POST':
+        asset_tag  = request.form['asset_tag']
+        source     = request.form['source']
+        dest       = request.form['destination'] 
+        req_date   = date.today() 
+
+        if asset_tag == "":
+            error = "asset tag cannot be blank"
+            return redirect(url_for('error', error=error))
+
+        search = """
+                    SELECT a.asset_tag, f.facility_name 
+                    FROM assets a
+                    JOIN facilities f
+                    ON a.asset_at = f.facility_pk
+                    WHERE asset_tag = %s; 
+                 """                                             # SQL search DB for asset tag. 
+        cur.execute(search,(asset_tag,))                    
+        res = cur.fetchone()
+
+        if not res:                                              # No match, do nothing.
+            error = "asset tag does not exist" 
+            return redirect(url_for('error', error=error)) 
+        if res[1] == "DISPOSED":                                 # Disposed already, do nothing. 
+            error = "asset was disposed"
+            return redirect(url_for('error', error=error))
+        elif res[1] != source: 
+            error = "asset is not at source facility specified"
+            return redirect(url_for('error', error=error))
+        else:
+            create = """
+                        INSERT INTO transfer_req (log_fk, asset_fk, source_fk, dest_fk, req_dt)
+                        VALUES ( (SELECT user_pk FROM users WHERE username =%s) , 
+                                 (SELECT asset_pk FROM assets WHERE asset_tag=%s), 
+                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
+                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s), 
+                                  %s);
+                     """                                                                     #SQL create transfe request.   
+            cur.execute(create,(session['username'], asset_tag, source, dest, req_date,))
+            conn.commit()
+            return render_template('req_success.html') 
+
+    # GET method. 
+    search = """
+                SELECT facility_name 
+                FROM facilities; 
+             """                                                      # SQL search for every facility in DB.
+    cur.execute(search)
+    res = cur.fetchall()
+
+    facilities = []
+    
+    for row in res:
+        if row[0] == 'DISPOSED':
+            continue
+        facilities.append(row[0]) 
+
+    session['facilities'] = facilities                                # Used for select drop down menu in html.
+
+    return render_template('transfer_req.html')
+
+# approve_req page. 
+@app.route('/approve_req', methods=('POST', 'GET',))
+def approve_req():
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
+        return redirect(url_for('not_logged'))
+    if session['user_role'] != "Facilities Officer":
+        error = "Only Facilities Officers have access to this page"
+        return redirect(url_for('error', error=error))
+    
+    # POST method. 
+    if request.methods == 'POST':
+        return
+
+
+    # GET method. 
+    return render_template('approve_req.html') 
 
 
 # logout page.

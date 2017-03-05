@@ -54,8 +54,45 @@ CREATE TABLE transit (
 
 	depart_dt	DATE,                                            -- Date it departed source.
 
-	arrival_dt 	DATE                                             -- Date it arrived at final. 
+	arrival_dt 	DATE,                                            -- Date it arrived at final. 
+
+	dispose_dt 	DATE                                             -- Date asset was dispossed if applicable
 ); 
+
+
+CREATE TABLE transfer_req (
+	transfer_pk 	SERIAL PRIMARY KEY,				 -- Transfer request should be differentiated.
+
+	log_fk 		INTEGER REFERENCES users ( user_pk),             -- Logistic officer making the request.
+
+	asset_fk	INTEGER REFERENCES assets ( asset_pk),		 -- Asset to be transfered. 
+
+	source_fk  	INTEGER REFERENCES facilities ( facility_pk),    -- Where the asset is located currently.
+
+	dest_fk		INTEGER REFERENCES facilities ( facility_pk),    -- Where the asset is requested to go.
+
+	req_dt		DATE, 						 -- Date request was made. 
+
+	fac_fk		INTEGER REFERENCES users ( user_pk),             -- Facilities officer that approve/ deny request.   
+
+	approved_bool	BOOLEAN,                                         -- Boolean to check if a request was approved.
+
+	approve_dt 	DATE                                             -- Approve date.  
+);
+
+
+CREATE TABLE transfer_info ( 
+	transfer_fk	INTEGER REFERENCES transfer_req ( transfer_pk),  -- References the transfer request. 
+
+	source_fk 	INTEGER REFERENCES facilities ( facility_pk),    -- References the source in transfer req, 
+
+	load_dt 	TIMESTAMP, 				       	 -- Load time with date.
+	
+	dest_fk		INTEGER REFERENCES facilities ( facility_pk),	 -- References the dest in transfer req, 
+
+	unload_dt	TIMESTAMP 					 -- Unload time with date. 
+); 	
+
 
 INSERT INTO facilities (facility_name, facility_code) VALUES ( 'DISPOSED', NULL);  --sets up a default facility DISPOSED 
 
