@@ -1,0 +1,39 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head> 
+	<style>
+		table, th, td { 
+			border: 1px solid black;
+		}
+	</style>
+		<title> LOST Approve Request </title>
+		
+	</head>
+	<body>	
+		<h2> Transfer Request </h2> 
+		<table>
+			<tr>
+				<th> Transfer Request ID </th>
+				<th> Requestor </th> 
+				<th> Asset Tag </th> 
+				<th> Source </th>
+				<th> Destination </th> 
+				<th> Requested Date </th>
+			</tr>
+			<tr>
+				<td>{{session.transfer_req}}</td>
+				<td>{{session.requestor}}</td>
+				<td>{{session.asset_tag}}</td>
+				<td>{{session.source_fk}}</td>
+				<td>{{session.dest_fk}}</td>	
+				<td>{{session.req_dt}}</td>
+			</tr>
+		</table>
+		<form action="/approve_req"  method="post">
+			<button name="button" type="submit" value="Approve">Approve</button>
+			<button name="button" type="submit" value="Reject">Reject</button>
+		</form>
+	</body>
+</html>
+
+
