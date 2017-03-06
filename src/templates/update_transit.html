@@ -1,0 +1,43 @@
+<!DOCTYPE html> 
+<html lang="en">
+	<head> 
+	<style>
+		table, th, td { 
+			border: 1px solid black;
+		}
+	</style>
+		<title> LOST Transit Info </title>
+		
+	</head>
+	<body>	
+		<h2> Transfer Info </h2> 
+		<table>
+			<tr>
+				<th> Transfer ID </th>
+				<th> Asset Tag </th> 
+				<th> Source </th> 
+				<th> Load Date </th>
+				<th> Destination </th> 
+				<th> Unload Date </th>
+			</tr>
+			<tr>
+				<td>{{session.transfer_id}}</td>
+				<td>{{session.asset_tag}}</td>
+				<td>{{session.source}}</td>
+				<td>{{session.load_dt}}</td>
+				<td>{{session.dest}}</td>	
+				<td>{{session.unload_dt}}</td>
+			</tr>
+		</table>
+		<br><br>
+		<form action="/update_transit"  method="post">
+			Load Date/Time: <input type="datetime-local" name="load_dt"> 
+			&nbsp; &nbsp; 
+			Unload Date/Time: <input type="datetime-local" name="unload_dt">
+			<br><br>
+			<input type="submit"  value="Submit">
+		</form>
+	</body>
+</html>
+
+
