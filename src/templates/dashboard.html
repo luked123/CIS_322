@@ -1,13 +1,12 @@
 <!DOCTYPE html> 
 <html lang="en">
 	<head>
-		<head>
 		<style>
-
-			table, th, td{
+			table, th, td {
 				border: 1px solid black;
 			}
 		</style>
+		
 
 		<title>Dashboard</title>
 	</head>
@@ -37,18 +36,19 @@
 			<input class="btn btn-default" type="submit" value="Logout">
 		</form>
 		<br>
+		
 		<h2> {{session.work_type}} </h2>
 		<table>
 			<tr>
 				<th> {{session.type_id}}</th>
 				<th> {{session.type_date}}</th>
 			</tr>
-			{ % for row in session.work_table %}
+			{% for row in session.work_table %}
 			<tr>
-				<td> <a href="{{url_for({{session.workspace}})}}?id={{row.id}}"> {{row.id}} </a> </td> 
+				<td> <a href="{{row['work_space']}}?id={{row['id']}}">{{row['id']}}</a></td>
 				<td> {{row.date}} </td> 
 			</tr>
-			{ % endfor % }
+			{% endfor %}
 		</table> 
 	</body>
 </html>

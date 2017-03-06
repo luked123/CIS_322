@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, url_for, redirect, session
 from config import dbname, dbhost, dbport
-from datetime
+import datetime
 import json
 import psycopg2 
 
@@ -64,12 +64,12 @@ def dashboard():
     if session['user_role'] == "Facilities Officer":  
         search = """
                     SELECT transfer_pk, req_dt
-                    FROM transfer_req
-                    WHERE approved_bool != True AND aproved_bool != False
-                    ORDER BY req_dt desc; 
+                    FROM transfer_req 
+                    WHERE approved_bool IS UNKNOWN
+                    ORDER BY req_dt asc; 
                   """                                        # SQL search for all transfer request that have not been checked
         cur.execute(search)
-        cur.fetchall()
+        res = cur.fetchall()
 
         work_table = [] 
 
@@ -77,12 +77,12 @@ def dashboard():
             e = dict()
             e['id'] = row[0]
             e['date'] = row[1]
+            e['work_space'] = '/approve_req'
             work_table.append(e)
         
-        session['work_space'] = "approve_req"
         session['work_type'] = "Transfer Requests"
         session['type_id']   = "Transfer Request ID"
-        session['tpe_date']  = "Request Date" 
+        session['type_date']  = "Request Date" 
         session['work_table'] = work_table
     
     if session['user_role'] == "Logistics Officer":  
@@ -91,11 +91,11 @@ def dashboard():
                     FROM transfer_info ti
                     JOIN transfer_req tr
                     ON tr.transfer_pk = ti.transfer_fk 
-                    WHERE approved_bool = True 
-                    ORDER BY approve_dt desc; 
+                    WHERE tr.approved_bool = 'true'  
+                    ORDER BY tr.approve_dt asc; 
                   """                                        # SQL search for all transfer request that have been approved
         cur.execute(search)
-        cur.fetchall()
+        res = cur.fetchall()
 
         work_table = [] 
 
@@ -103,17 +103,15 @@ def dashboard():
             e = dict()
             e['id'] = row[0]
             e['date'] = row[1]
+            e['work_space'] = '/update_transit' 
             work_table.append(e)
 
-        session['work_space'] = "update_transit"
         session['work_type'] = "Transfer Update Schedule"
         session['type_id']   = "Transfer ID"
-        session['tpe_date']  = "Approved Date" 
+        session['type_date']  = "Approved Date" 
         session['work_table'] = work_table
-    
-    if session['user_role'] == "Logistics Officer":
-      
-    return render_template('dashboard.html') 
+
+    return render_template('dashboard.html')
 
 
 # create_user page.
@@ -504,7 +502,7 @@ def transfer_req():
         asset_tag  = request.form['asset_tag']
         source     = request.form['source']
         dest       = request.form['destination'] 
-        req_date   = datetime.datetime.now() 
+        req_date   = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
 
         if asset_tag == "":
             error = "asset tag cannot be blank"
@@ -561,6 +559,93 @@ def transfer_req():
 
     return render_template('transfer_req.html')
 
+# update_transit page. 
+@app.route('/update_transit', methods=('POST', 'GET'))
+def update_transit(): 
+    if session.get('logged_in') != True:                    # Must be logged in to visit this page. 
+        return redirect(url_for('not_logged'))
+    if session['user_role'] != "Logistics Officer":
+        error = "Only Logistics Officers have access to this page"
+        return redirect(url_for('error', error=error))
+   
+    # POST method.  
+    if request.method == 'POST':
+        load_dt   = request.form['load_dt'] 
+        unload_dt = request.form['unload_dt']
+
+        check = """
+                    SELECT ti.unload_dt 
+                    FROM transfer_info ti
+                    WHERE ti.transfer_fk = %s; 
+                """
+        cur.execute(check, (session['transfer_id'],))
+        res = cur.fetchone()
+
+        if not res[0]:
+            if not unload_dt:  
+                update = """
+                            UPDATE transfer_info 
+                            SET load_dt = %s
+                            WHERE transfer_fk = %s; 
+                         """
+                cur.execute(update, (load_dt, session['transfer_id'],))
+                conn.commit()
+            else:  
+                update = """
+                            UPDATE transfer_info 
+                            SET load_dt = %s, unload_dt = %s
+                            WHERE transfer_fk = %s; 
+                         """
+                cur.execute(update, (load_dt, unload_dt, session['transfer_id'],))
+                conn.commit()
+
+            return redirect(url_for('dashboard'))
+        else: 
+            error = "Invalid request, unload time is already set"  
+            return redirect(url_for('error', error=error))
+
+    # GET method.     
+    session['transfer_id'] = request.args['id'] 
+    
+    search = """
+                SELECT ti.transfer_fk, a.asset_tag, ti.source_fk, ti.load_dt, ti.dest_fk, ti.unload_dt
+                FROM transfer_info ti
+                JOIN assets a 
+                ON asset_fk = asset_pk 
+                WHERE transfer_fk = %s; 
+             """
+    cur.execute(search, (session['transfer_id'],))
+    res = cur.fetchone() 
+
+    session['transfer_id'] = res[0]
+    session['asset_tag']   = res[1]
+    session['source_fk']   = res[2]
+    session['load_dt']     = res[3]
+    session['dest_fk']     = res[4]
+    session['unload_dt']   = res[5]
+
+    search = """ 
+                SELECT facility_name 
+                FROM facilities 
+                WHERE facility_pk = %s; 
+             """   
+    cur.execute(search,(session['source_fk'],))
+    res = cur.fetchone()
+
+    session['source'] = res[0]
+
+    search = """ 
+                SELECT facility_name 
+                FROM facilities 
+                WHERE facility_pk = %s; 
+             """   
+    cur.execute(search,(session['dest_fk'],))
+    res = cur.fetchone()
+
+    session['dest'] = res[0] 
+
+    return render_template('/update_transit.html') 
+
 # approve_req page. 
 @app.route('/approve_req', methods=('POST', 'GET',))
 def approve_req():
@@ -571,30 +656,33 @@ def approve_req():
         return redirect(url_for('error', error=error))
     
     # POST method. 
-    if request.methods == 'POST':
+    if request.method == 'POST':
         button = request.form['button']
+        approve_date   = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+      
 
         if button == "Approve":
             update = """
-                        UPDATE transfer_req (approved_bool) 
-                        VALUES ('true')
+                        UPDATE transfer_req 
+                        SET approved_bool = 'true', approve_dt = %s 
                         WHERE transfer_pk = %s;       
                      """
-            cur.execute(update, (session['transfer_req'],))
+            cur.execute(update,(approve_date, session['transfer_req'],))
+            null = None
 
             create = """
-                        INSERT INTO transfer_info ( transfer_fk, source_fk, dest_fk)
-                        VALUES (%s, %s, %s); 
+                        INSERT INTO transfer_info ( transfer_fk, asset_fk, source_fk, load_dt, unload_dt, dest_fk)
+                        VALUES (%s,(SELECT asset_pk FROM assets WHERE asset_tag = %s), %s, %s, %s, %s); 
                      """
-            cur.execute(create, (session['transfer_req'], session['source_fk'], session['dest_fk'],))
+            cur.execute(create, (session['transfer_req'], session['asset_tag'],  session['source_fk'], null, null, session['dest_fk'],))
             conn.commit()
 
             return redirect(url_for('dashboard'))
 
         if button == "Reject": 
             update = """
-                        UPDATE transfer_req (approved_bool)
-                        VALUES ('false')
+                        UPDATE transfer_req
+                        SET approved_bool = 'false' 
                         WHERE transfer_pk = %s; 
                       """
             cur.execute(update, (session['transfer_req'],))
@@ -607,7 +695,7 @@ def approve_req():
     transfer_req = request.args['id']
     search = """
                 SELECT tr.transfer_pk, u.username, a.asset_tag, tr.source_fk, tr.dest_fk, tr.req_dt
-                FROM tranfer_req tr
+                FROM transfer_req tr
                 JOIN users u 
                 ON tr.log_fk = u.user_pk
                 JOIN assets a 
@@ -623,6 +711,26 @@ def approve_req():
     session['source_fk']    = res[3]
     session['dest_fk']      = res[4]
     session['req_dt']       = res[5]
+
+    search = """ 
+                SELECT facility_name 
+                FROM facilities 
+                WHERE facility_pk = %s; 
+             """   
+    cur.execute(search,(session['source_fk'],))
+    res = cur.fetchone()
+
+    session['source'] = res[0]
+
+    search = """ 
+                SELECT facility_name 
+                FROM facilities 
+                WHERE facility_pk = %s; 
+             """   
+    cur.execute(search,(session['dest_fk'],))
+    res = cur.fetchone()
+
+    session['dest'] = res[0] 
    
     return render_template('approve_req.html') 
 

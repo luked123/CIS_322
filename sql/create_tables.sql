@@ -84,6 +84,8 @@ CREATE TABLE transfer_req (
 CREATE TABLE transfer_info ( 
 	transfer_fk	INTEGER REFERENCES transfer_req ( transfer_pk),  -- References the transfer request. 
 
+	asset_fk        INTEGER REFERENCES assets ( asset_pk),           -- References assit that is going to be transfered 
+
 	source_fk 	INTEGER REFERENCES facilities ( facility_pk),    -- References the source in transfer req, 
 
 	load_dt 	TIMESTAMP, 				       	 -- Load time with date.
