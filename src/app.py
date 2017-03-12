@@ -380,7 +380,8 @@ def dispose_asset():
                         UPDATE transit
                         SET final_fk = (SELECT facility_pk FROM facilities WHERE facility_name = 'DISPOSED'),
                             arrival_dt = NULL,
-                            depart_dt = %s
+                            depart_dt = NULL,
+                            dispose_dt = %s 
                         WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s);
                      """                                                                     #SQL change asset to disposed. 
             cur.execute(change,(asset_tag, dispose_dt,asset_tag,))
@@ -408,15 +409,15 @@ def asset_report():
 
         if facility_name == "":                                    
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt, t.dispose_dt
                         FROM assets a 
                         JOIN facilities f
                         ON a.asset_at = f.facility_pk
                         JOIN transit t
                         ON a.asset_pk = t.asset_fk
-                        WHERE t.arrival_dt = %s OR t.depart_dt = %s;
+                        WHERE t.arrival_dt = %s OR t.depart_dt = %s OR t.dispose_dt = %s; 
                     """                                                 # SQL search assets matching date in all facilities.
-            cur.execute(search,(date,date,))
+            cur.execute(search,(date,date,date,))
             res = cur.fetchall() 
         
             asset_report_table = [] 
@@ -428,6 +429,7 @@ def asset_report():
                 e['facility_name'] = row[2]
                 e['arrival_dt']    = row[3]
                 e['depart_dt']     = row[4] 
+                e['dispose_dt']    = row[5]
                 asset_report_table.append(e)
 
             session['asset_report_table'] =asset_report_table
@@ -436,15 +438,15 @@ def asset_report():
 
         else:                                                       # Specific facility name. 
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt, t.dispose_dt
                         FROM assets a 
                         JOIN facilities f
                         ON a.asset_at = f.facility_pk
                         JOIN transit t
                         ON a.asset_pk = t.asset_fk
-                        WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s);
+                        WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s  OR t.dispose_dt = %s);
                     """                                              # SQL search assets in specific facility matching date. 
-            cur.execute(search,(facility_name,date,date,))
+            cur.execute(search,(facility_name,date,date,date,))
             res = cur.fetchall() 
 
             asset_report_table = []
@@ -456,6 +458,7 @@ def asset_report():
                 e['facility_name'] = row[2]
                 e['arrival_dt']    = row[3]
                 e['depart_dt']     = row[4] 
+                e['dispose_dt']    = row[5]
                 asset_report_table.append(e) 
 
             session['asset_report_table'] = asset_report_table

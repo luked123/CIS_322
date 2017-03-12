@@ -32,7 +32,8 @@
 				<th> Asset Description </th> 
 				<th> Facility </th> 
 				<th> Arrival Date</th>
-				<th> Departure/Disposal Date</th> 
+				<th> Departure Date</th>
+			        <th> Disposal Date</th> 	
 
 			</tr>
 			<!-- creates the ouput table -->
@@ -42,7 +43,8 @@
 					<td>{{row.asset_desc}}</td>
 					<td>{{row.facility_name}}</td>
 				        <td>{{row.arrival_dt}}</td>
-					<td>{{row.depart_dt}}</td>	
+					<td>{{row.depart_dt}}</td>
+					<td>{{row.dispose_dt}}</td>	
 				</tr>
 			{% endfor %}
 		</table>
