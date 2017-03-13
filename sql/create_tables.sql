@@ -21,7 +21,9 @@ CREATE TABLE users (
 
 	password 	varchar(16) NOT NULL,	          -- Req doc states passwords cannot be longer than 16 chars.
 
-	role_fk		INTEGER REFERENCES roles (role_pk)  -- References roles table
+	role_fk		INTEGER REFERENCES roles (role_pk),  -- References roles table
+
+	active		BOOLEAN				     -- user is active or not	
 );
 
 

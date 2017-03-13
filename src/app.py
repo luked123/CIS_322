@@ -32,7 +32,7 @@ def login():
             return redirect(url_for('error', error=error)) 
 
         check = """                                         
-                    SELECT u.username, r.role, u.password
+                    SELECT u.username, r.role, u.active
                     FROM users u
                     JOIN roles r
                     ON u.role_fk = r.role_pk
@@ -46,8 +46,12 @@ def login():
             return redirect(url_for('error', error=error)) 
         else:
             session['username']  = res[0]                    # There was a match, start session.
-            session['user_role'] = res[1]                    # Users role. 
-            session['logged_in'] = True                      # Logged in. 
+            session['user_role'] = res[1]                    # Users role.
+            session['active']    = res[2]
+            if session['active'] != True:
+                session['logged_in'] = False                     # Logged in.
+            else: 
+                session['logged_in'] = True
             return redirect(url_for('dashboard'))
     
     #GET method.
@@ -162,8 +166,8 @@ def create_user():
 
         if not res:                                              # If response is an empty list, insert username/password pair.
              create = """
-                        INSERT INTO users (username, password) 
-                        VALUES ( %s, %s);
+                        INSERT INTO users (username, password, active) 
+                        VALUES ( %s, %s, true);
                      """                                         # SQL create username / password pair.
              cur.execute(create,(username, password,))
              conn.commit()
@@ -667,10 +671,10 @@ def approve_req():
         if button == "Approve":
             update = """
                         UPDATE transfer_req 
-                        SET approved_bool = 'true', approve_dt = %s 
+                        SET approved_bool = 'true', approve_dt = %s, fac_fk = (SELECT user_pk FROM users WHERE username = %s) 
                         WHERE transfer_pk = %s;       
                      """
-            cur.execute(update,(approve_date, session['transfer_req'],))
+            cur.execute(update,(approve_date, session['username'], session['transfer_req'],))
             null = None
 
             create = """
