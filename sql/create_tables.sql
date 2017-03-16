@@ -41,18 +41,15 @@ CREATE TABLE assets (
 	
 	asset_tag	varchar(16) UNIQUE NOT NULL,			-- Asset tags must be unique.	
 
-	asset_desc	TEXT, 						
+	asset_desc	TEXT, 						-- Asset description
 
-	asset_at	INTEGER REFERENCES facilities ( facility_pk)	-- Disposed will be apart of facilities as a DISPOSED										-- name, and facility code of NULL. Will be easy to see 
-);                                                                      -- all assets that have been dipsosed. May change this 
-									-- later. 
+	initial_fk     	INTEGER REFERENCES facilities ( facility_pk)    -- Initial facility asset started
+); 
 
-CREATE TABLE transit (
-	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References the asset in transit.
+CREATE TABLE asset_at (
+	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References asset with particular date
 	
-	source_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- References where the assets from.
-
-	final_fk	INTEGER REFERENCES facilities ( facility_pk),    -- References where the asset is at.
+	source_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- Where the asset is from 
 
 	depart_dt	DATE,                                            -- Date it departed source.
 
@@ -73,13 +70,13 @@ CREATE TABLE transfer_req (
 
 	dest_fk		INTEGER REFERENCES facilities ( facility_pk),    -- Where the asset is requested to go.
 
-	req_dt		TIMESTAMP, 						 -- Date request was made. 
+	req_dt		TIMESTAMP, 					 -- Date request was made. 
 
 	fac_fk		INTEGER REFERENCES users ( user_pk),             -- Facilities officer that approve/ deny request.   
 
 	approved_bool	BOOLEAN,                                         -- Boolean to check if a request was approved.
 
-	approve_dt 	TIMESTAMP                                             -- Approve date.  
+	approve_dt 	TIMESTAMP                                        -- Approve date.  
 );
 
 
@@ -98,6 +95,5 @@ CREATE TABLE transfer_info (
 ); 	
 
 
-INSERT INTO facilities (facility_name, facility_code) VALUES ( 'DISPOSED', NULL);  --sets up a default facility DISPOSED 
 
 															
