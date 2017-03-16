@@ -283,15 +283,15 @@ def add_asset():
 
         if not res:                                        # No match, create asset.   
             create = """
-                        INSERT INTO assets (asset_tag, asset_desc, initial_fk) 
-                        VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s)); 
+                        INSERT INTO assets (asset_tag, asset_desc, initial_fk, initial_dt) 
+                        VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s), %s); 
 
                         INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt) 
                         VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
                                 %s); 
                     """                                                                                    # SQL create asset. 
-            cur.execute(create,(asset_tag,asset_desc,facility_name,asset_tag,facility_name,arrive_dt,))
+            cur.execute(create,(asset_tag,asset_desc,facility_name,arrive_dt,asset_tag,facility_name,arrive_dt,))
             conn.commit()
             return redirect(url_for('add_asset'))
         else:                                                         # Match, do not create asset. 
@@ -518,11 +518,9 @@ def transfer_req():
             return redirect(url_for('error', error=error))
 
         search = """
-                    SELECT a.asset_tag, f.facility_name 
+                    SELECT a.asset_tag, a.dispose_dt
                     FROM assets a
-                    JOIN facilities f
-                    ON a.asset_at = f.facility_pk
-                    WHERE asset_tag = %s; 
+                    WHERE a.asset_tag = %s; 
                  """                                             # SQL search DB for asset tag. 
         cur.execute(search,(asset_tag,))                    
         res = cur.fetchone()
@@ -530,11 +528,8 @@ def transfer_req():
         if not res:                                              # No match, do nothing.
             error = "asset tag does not exist" 
             return redirect(url_for('error', error=error)) 
-        if res[1] == "DISPOSED":                                 # Disposed already, do nothing. 
+        if res[1] != None:                                       # Disposed already, do nothing. 
             error = "asset was disposed"
-            return redirect(url_for('error', error=error))
-        elif res[1] != source: 
-            error = "asset is not at source facility specified"
             return redirect(url_for('error', error=error))
         else:
             create = """
@@ -560,8 +555,6 @@ def transfer_req():
     facilities = []
     
     for row in res:
-        if row[0] == 'DISPOSED':
-            continue
         facilities.append(row[0]) 
 
     session['facilities'] = facilities                                # Used for select drop down menu in html.
@@ -617,10 +610,14 @@ def update_transit():
     session['transfer_id'] = request.args['id'] 
     
     search = """
-                SELECT ti.transfer_fk, a.asset_tag, ti.source_fk, ti.load_dt, ti.dest_fk, ti.unload_dt
+                SELECT ti.transfer_fk, a.asset_tag, ti.source_fk, ti.load_dt, ti.dest_fk, ti.unload_dt, u.username
                 FROM transfer_info ti
                 JOIN assets a 
                 ON asset_fk = asset_pk 
+                JOIN transfer_req tr
+                ON ti.transfer_fk = tr.transfer_pk
+                JOIN users u
+                ON tr.fac_fk = u.user_pk
                 WHERE transfer_fk = %s; 
              """
     cur.execute(search, (session['transfer_id'],))
@@ -632,6 +629,7 @@ def update_transit():
     session['load_dt']     = res[3]
     session['dest_fk']     = res[4]
     session['unload_dt']   = res[5]
+    session['approved_by'] = res[6]
 
     search = """ 
                 SELECT facility_name 
