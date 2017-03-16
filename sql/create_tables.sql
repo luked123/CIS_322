@@ -43,19 +43,19 @@ CREATE TABLE assets (
 
 	asset_desc	TEXT, 						-- Asset description
 
-	initial_fk     	INTEGER REFERENCES facilities ( facility_pk)    -- Initial facility asset started
+	initial_fk     	INTEGER REFERENCES facilities ( facility_pk),   -- Initial facility asset started
+
+	dispose_dt	DATE						-- Date asset was disposed if applicable 
 ); 
 
 CREATE TABLE asset_at (
 	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References asset with particular date
 	
-	source_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- Where the asset is from 
+	facility_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- Where the asset is at
 
-	depart_dt	DATE,                                            -- Date it departed source.
+	depart_dt	DATE,                                            -- Date it departed from this facility if applicable
 
-	arrival_dt 	DATE,                                            -- Date it arrived at final. 
-
-	dispose_dt 	DATE                                             -- Date asset was dispossed if applicable
+	arrival_dt 	DATE                                             -- Date it arrived at final. 
 ); 
 
 
