@@ -14,14 +14,12 @@
 		<table>
 			<tr>
 				<th> Asset Tag </th>
-				<th> Asset At </th> 
 				<th> Asset Description </th> 
 			</tr>
 			<!-- creates the ouput table -->
 			{% for row in session.asset_table %}
 				<tr>
 					<td>{{row.asset_tag}}</td>
-					<td>{{row.asset_at}}</td>
 					<td>{{row.asset_desc}}</td> 
 				</tr>
 			{% endfor %}
@@ -43,6 +41,11 @@
 			<br>	
 			<input type="submit" value="Submit"> 
 		</form>
+		<br><br><br><br><br>
+		<form action="/dashboard">
+			<input type="submit" value="Go Back">
+		</form>
+
 	</body>
 </html>
 

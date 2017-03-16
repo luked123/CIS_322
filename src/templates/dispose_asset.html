@@ -1,16 +1,39 @@
 <!DOCTYPE html> 
 <html lang="en">
 	<head> 
+	<style>
+		table, th, td { 
+			border: 1px solid black;
+		}
+	</style>
 		<title> LOST Dispose Asset </title>
 	</head>
 	<body>	
 		<h2> Dispose an Asset </h2> 
+		<table>
+			<tr>
+				<th> Asset Tag </th>
+				<th> Asset Description </th> 
+			</tr>
+			<!-- creates the ouput table -->
+			{% for row in session.asset_table %}
+				<tr>
+					<td>{{row.asset_tag}}</td>
+					<td>{{row.asset_desc}}</td> 
+				</tr>
+			{% endfor %}
+		</table>
+		<br>
 		<form action="/dispose_asset"  method="post">
 			Asset Tag: <input type="text" maxlength="16" name="asset_tag"> 
 		        Date Disposed: <input type="date" name="dispose_dt">
 			<br>
 			<br> 	
 			<input type="submit" value="Submit"> 
+		</form>
+		<br><br><br><br>
+		<form action="/dashboard">
+			<input type="submit" value="Go Back">
 		</form>
 	</body>
 </html>

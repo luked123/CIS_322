@@ -283,10 +283,10 @@ def add_asset():
 
         if not res:                                        # No match, create asset.   
             create = """
-                        INSERT INTO assets (asset_tag, asset_desc, asset_at) 
+                        INSERT INTO assets (asset_tag, asset_desc, initial_fk) 
                         VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s)); 
 
-                        INSERT INTO transit (asset_fk, final_fk, arrival_dt) 
+                        INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt) 
                         VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
                                 %s); 
@@ -309,17 +309,13 @@ def add_asset():
     facilities = []
     
     for row in res:
-        if row[0] == 'DISPOSED':
-            continue
         facilities.append(row[0]) 
 
     session['facilities'] = facilities                                 # Used for select drop down menu in html. 
 
     search = """
-                SELECT a.asset_tag, f.facility_name, a.asset_desc
-                FROM assets a
-                JOIN facilities f
-                ON asset_at = facility_pk; 
+                SELECT asset_tag, asset_desc
+                FROM assets; 
              """                                                       # SQL search for every asset in DB.
     cur.execute(search)
     res = cur.fetchall()
@@ -329,8 +325,7 @@ def add_asset():
     for row in res:
         e = dict()
         e['asset_tag']  = row[0]
-        e['asset_at']   = row[1]
-        e['asset_desc'] = row[2] 
+        e['asset_desc'] = row[1] 
         asset_table.append(e)
 
     session['asset_table'] = asset_table
@@ -360,10 +355,8 @@ def dispose_asset():
             return redirect(url_for('error', error=error)) 
 
         search = """
-                    SELECT a.asset_tag, f.facility_name 
+                    SELECT a.asset_tag, dispose_dt
                     FROM assets a
-                    JOIN facilities f
-                    ON a.asset_at = f.facility_pk
                     WHERE asset_tag = %s; 
                  """                                             # SQL search DB for asset tag. 
         cur.execute(search,(asset_tag,))                    
@@ -372,27 +365,38 @@ def dispose_asset():
         if not res:                                              # No match, do nothing.
             error = "asset tag does not exist" 
             return redirect(url_for('error', error=error)) 
-        if res[1] == "DISPOSED":                                 # Disposed already, do nothing. 
+        if res[1] != None:                                       # Disposed already, do nothing. 
             error = "asset was already disposed"
             return redirect(url_for('error', error=error)) 
         else:
             change = """
                         UPDATE assets
-                        SET asset_at = (SELECT facility_pk FROM facilities WHERE facility_name = 'DISPOSED')
+                        SET dispose_dt = %s 
                         WHERE asset_tag = %s; 
-
-                        UPDATE transit
-                        SET final_fk = (SELECT facility_pk FROM facilities WHERE facility_name = 'DISPOSED'),
-                            arrival_dt = NULL,
-                            depart_dt = NULL,
-                            dispose_dt = %s 
-                        WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s);
                      """                                                                     #SQL change asset to disposed. 
-            cur.execute(change,(asset_tag, dispose_dt,asset_tag,))
+            cur.execute(change,(dispose_dt, asset_tag,))
             conn.commit()
             return redirect(url_for('dashboard')) 
     
     # GET method. 
+    search = """
+                SELECT asset_tag, asset_desc, dispose_dt
+                FROM assets; 
+             """                                                       # SQL search for every asset in DB.
+    cur.execute(search)
+    res = cur.fetchall()
+   
+    asset_table = []
+
+    for row in res:
+        if row[2] != None:
+            continue
+        e = dict()
+        e['asset_tag']  = row[0]
+        e['asset_desc'] = row[1] 
+        asset_table.append(e)
+
+    session['asset_table'] = asset_table
     return render_template('dispose_asset.html')
 
 
@@ -413,13 +417,13 @@ def asset_report():
 
         if facility_name == "":                                    
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt, t.dispose_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, at.arrival_dt, at.depart_dt, a.dispose_dt
                         FROM assets a 
+                        JOIN asset_at at
+                        ON at.asset_fk = a.asset_pk
                         JOIN facilities f
-                        ON a.asset_at = f.facility_pk
-                        JOIN transit t
-                        ON a.asset_pk = t.asset_fk
-                        WHERE t.arrival_dt = %s OR t.depart_dt = %s OR t.dispose_dt = %s; 
+                        ON at.facility_fk = f.facility_pk
+                        WHERE at.arrival_dt = %s OR at.depart_dt = %s OR a.dispose_dt = %s; 
                     """                                                 # SQL search assets matching date in all facilities.
             cur.execute(search,(date,date,date,))
             res = cur.fetchall() 
@@ -442,13 +446,13 @@ def asset_report():
 
         else:                                                       # Specific facility name. 
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, t.arrival_dt, t.depart_dt, t.dispose_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_name, at.arrival_dt, at.depart_dt, a.dispose_dt
                         FROM assets a 
+                        JOIN asset_at at
+                        ON a.asset_pk = at.asset_fk
                         JOIN facilities f
-                        ON a.asset_at = f.facility_pk
-                        JOIN transit t
-                        ON a.asset_pk = t.asset_fk
-                        WHERE f.facility_name = %s AND (t.arrival_dt = %s OR t.depart_dt = %s  OR t.dispose_dt = %s);
+                        ON at.facility_fk = f.facility_pk
+                        WHERE f.facility_name = %s AND (at.arrival_dt = %s OR at.depart_dt = %s  OR a.dispose_dt = %s);
                     """                                              # SQL search assets in specific facility matching date. 
             cur.execute(search,(facility_name,date,date,date,))
             res = cur.fetchall() 
@@ -480,8 +484,6 @@ def asset_report():
     facilities = []
     
     for row in res:
-        if row[0] == 'DISPOSED':
-            continue
         facilities.append(row[0]) 
 
     session['facilities'] = facilities                                 # Used for select drop down menu in html.

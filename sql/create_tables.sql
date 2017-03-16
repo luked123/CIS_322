@@ -43,19 +43,21 @@ CREATE TABLE assets (
 
 	asset_desc	TEXT, 						-- Asset description
 
-	initial_fk     	INTEGER REFERENCES facilities ( facility_pk),   -- Initial facility asset started
+	initial_fk     	INTEGER REFERENCES facilities ( facility_pk),   -- Initial facility asset was created
+
+	initial_dt      DATE, 						-- Date asset was initially created
 
 	dispose_dt	DATE						-- Date asset was disposed if applicable 
 ); 
 
 CREATE TABLE asset_at (
-	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References asset with particular date
+	asset_fk 	INTEGER REFERENCES assets ( asset_pk),           -- References asset
 	
-	facility_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- Where the asset is at
+	facility_fk 	INTEGER REFERENCES facilities ( facility_pk),	 -- Where the asset is at 
 
-	depart_dt	DATE,                                            -- Date it departed from this facility if applicable
+	arrival_dt	DATE,                                            -- Date it arrived at facility
 
-	arrival_dt 	DATE                                             -- Date it arrived at final. 
+	depart_dt 	DATE                                             -- Date it departed facility
 ); 
 
 
@@ -83,7 +85,7 @@ CREATE TABLE transfer_req (
 CREATE TABLE transfer_info ( 
 	transfer_fk	INTEGER REFERENCES transfer_req ( transfer_pk),  -- References the transfer request. 
 
-	asset_fk        INTEGER REFERENCES assets ( asset_pk),           -- References assit that is going to be transfered 
+	asset_fk        INTEGER REFERENCES assets ( asset_pk),           -- References asset that is going to be transfered 
 
 	source_fk 	INTEGER REFERENCES facilities ( facility_pk),    -- References the source in transfer req, 
 
