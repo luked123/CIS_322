@@ -57,11 +57,11 @@ CREATE TABLE asset_at (
 
 	arrival_dt	DATE,                                            -- Date it arrived at facility
 
-	depart_dt 	DATE                                             -- Date it departed facility
+	depart_dt 	DATE,                                            -- Date it departed facility
 
-	tranfering 	BOOLEAN						 -- Asset is transfering
+	transfering 	BOOLEAN,					 -- Asset is in the middle of transfering
 
-	transfered 	BOOLEAN						 -- Asset was transfered
+	transfered 	BOOLEAN						 -- Asset was transfered 
 ); 
 
 
