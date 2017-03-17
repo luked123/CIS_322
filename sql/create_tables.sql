@@ -59,6 +59,8 @@ CREATE TABLE asset_at (
 
 	depart_dt 	DATE,                                            -- Date it departed facility
 
+	requested	BOOLEAN, 					 -- If asset was requested for transfer
+
 	transfering 	BOOLEAN,					 -- Asset is in the middle of transfering
 
 	transfered 	BOOLEAN						 -- Asset was transfered 

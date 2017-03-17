@@ -286,10 +286,10 @@ def add_asset():
                         INSERT INTO assets (asset_tag, asset_desc, initial_fk, initial_dt) 
                         VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s), %s); 
 
-                        INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt) 
+                        INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt, transfering, transfered) 
                         VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
-                                %s); 
+                                %s, 'false', 'false'); 
                     """                                                                                    # SQL create asset. 
             cur.execute(create,(asset_tag,asset_desc,facility_name,arrive_dt,asset_tag,facility_name,arrive_dt,))
             conn.commit()
@@ -518,18 +518,25 @@ def transfer_req():
             return redirect(url_for('error', error=error))
 
         search = """
-                    SELECT a.asset_tag, a.dispose_dt
-                    FROM assets a
-                    WHERE a.asset_tag = %s; 
+                    SELECT a.asset_tag, a.dispose_dt, f.facility_name
+                    FROM assets_at at
+                    JOIN  facilities f
+                    ON f.facility_pk = at.facility_fk
+                    JOIN assets a
+                    ON at.asset_fk = a.asset_pk
+                    WHERE a.asset_tag = %s AND at.transfering = 'false' AND at.transfered = 'false' AND at.requested = 'false';  
                  """                                             # SQL search DB for asset tag. 
         cur.execute(search,(asset_tag,))                    
         res = cur.fetchone()
 
         if not res:                                              # No match, do nothing.
-            error = "asset tag does not exist" 
+            error = "asset tag does not exist or \n transfer request for asset needs to be approved or denied before making another request or \n asset is in the process of having a transfer" 
             return redirect(url_for('error', error=error)) 
         if res[1] != None:                                       # Disposed already, do nothing. 
             error = "asset was disposed"
+            return redirect(url_for('error', error=error))
+        if res[2] != source:
+            error = "asset is not located at source facility specified" 
             return redirect(url_for('error', error=error))
         else:
             create = """
