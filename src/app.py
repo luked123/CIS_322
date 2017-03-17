@@ -286,10 +286,10 @@ def add_asset():
                         INSERT INTO assets (asset_tag, asset_desc, initial_fk, initial_dt) 
                         VALUES (%s, %s, (SELECT facility_pk FROM facilities WHERE facility_name = %s), %s); 
 
-                        INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt, transfering, transfered) 
+                        INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt, requested, transfering, transfered) 
                         VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s),
                                 (SELECT facility_pk FROM facilities WHERE facility_name = %s),
-                                %s, 'false', 'false'); 
+                                %s, 'false', 'false', 'false'); 
                     """                                                                                    # SQL create asset. 
             cur.execute(create,(asset_tag,asset_desc,facility_name,arrive_dt,asset_tag,facility_name,arrive_dt,))
             conn.commit()
@@ -530,7 +530,7 @@ def transfer_req():
         res = cur.fetchone()
 
         if not res:                                              # No match, do nothing.
-            error = "asset tag does not exist or \n transfer request for asset needs to be approved or denied before making another request or \n asset is in the process of having a transfer" 
+            error = "asset tag does not exist or \n transfer request for same asset needs to be approved or denied before making another request or \n asset is in the process of having a transfer" 
             return redirect(url_for('error', error=error)) 
         if res[1] != None:                                       # Disposed already, do nothing. 
             error = "asset was disposed"
@@ -546,6 +546,11 @@ def transfer_req():
                                  (SELECT facility_pk FROM facilities WHERE facility_name = %s),
                                  (SELECT facility_pk FROM facilities WHERE facility_name = %s), 
                                   %s);
+
+                        UPDATE asset_at 
+                        SET requested = 'true'
+                        WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag =%s) AND 
+                                          transfering = 'false' AND transfered = 'false' AND requested = 'false';
                      """                                                                     #SQL create transfe request.   
             cur.execute(create,(session['username'], asset_tag, source, dest, req_date,))
             conn.commit()
@@ -604,8 +609,18 @@ def update_transit():
                             UPDATE transfer_info 
                             SET load_dt = %s, unload_dt = %s
                             WHERE transfer_fk = %s; 
+
+                            UPDATE asset_at
+                            SET depart_dt = %s, transfered = 'true'
+                            WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s) 
+                            AND requested = 'true'  AND 'transfering = 'true' AND transfered = 'false'; 
+
+                            INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt, requested, transfering, transfered)
+                            VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s), 
+                                    (SELECT facility_pk WHERE facility_name = %s), 
+                                    %s, 'false', 'false', 'false'); 
                          """
-                cur.execute(update, (load_dt, unload_dt, session['transfer_id'],))
+                cur.execute(update, (load_dt, unload_dt, session['transfer_id'], session['load_dt'], session['asset_tag'], session['asset_tag'], session['dest_fk'], session['unload_dt'],))
                 conn.commit()
 
             return redirect(url_for('dashboard'))
@@ -679,9 +694,14 @@ def approve_req():
             update = """
                         UPDATE transfer_req 
                         SET approved_bool = 'true', approve_dt = %s, fac_fk = (SELECT user_pk FROM users WHERE username = %s) 
-                        WHERE transfer_pk = %s;       
+                        WHERE transfer_pk = %s;
+
+                        UPDATE asset_at
+                        SET transfering = 'true' 
+                        WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s) 
+                        AND requested = 'true' AND transfering = 'false' AND transfered = 'false'; 
                      """
-            cur.execute(update,(approve_date, session['username'], session['transfer_req'],))
+            cur.execute(update,(approve_date, session['username'], session['transfer_req'], session['asset_tag'],))
             null = None
 
             create = """
@@ -697,9 +717,14 @@ def approve_req():
             update = """
                         UPDATE transfer_req
                         SET approved_bool = 'false' 
-                        WHERE transfer_pk = %s; 
+                        WHERE transfer_pk = %s;
+                
+                        UPDATE asset_at
+                        SET requested = 'false' 
+                        WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s) AND 
+                        transfering = 'false' AND transfered = 'false' AND requested = 'true'; 
                       """
-            cur.execute(update, (session['transfer_req'],))
+            cur.execute(update, (session['transfer_req'], session['asset_tag'],))
             conn.commit()
 
             return redirect(url_for('dashboard'))
