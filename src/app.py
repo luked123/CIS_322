@@ -241,8 +241,6 @@ def add_facility():
     facility_table = []
 
     for row in res:
-        if row[0] == "DISPOSED":                             # Don't display disposed facility. 
-            continue
         e = dict()
         e['facility_name'] = row[0]
         e['facility_code'] = row[1]
@@ -417,7 +415,7 @@ def asset_report():
 
         if facility_name == "":                                    
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, at.arrival_dt, at.depart_dt, a.dispose_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_code, at.arrival_dt, at.depart_dt, a.dispose_dt
                         FROM assets a 
                         JOIN asset_at at
                         ON at.asset_fk = a.asset_pk
@@ -434,7 +432,7 @@ def asset_report():
                 e = dict()
                 e['asset_tag']     = row[0]
                 e['asset_desc']    = row[1]
-                e['facility_name'] = row[2]
+                e['facility_code'] = row[2]
                 e['arrival_dt']    = row[3]
                 e['depart_dt']     = row[4] 
                 e['dispose_dt']    = row[5]
@@ -446,7 +444,7 @@ def asset_report():
 
         else:                                                       # Specific facility name. 
             search = """
-                        SELECT a.asset_tag, a.asset_desc, f.facility_name, at.arrival_dt, at.depart_dt, a.dispose_dt
+                        SELECT a.asset_tag, a.asset_desc, f.facility_code, at.arrival_dt, at.depart_dt, a.dispose_dt
                         FROM assets a 
                         JOIN asset_at at
                         ON a.asset_pk = at.asset_fk
@@ -463,7 +461,7 @@ def asset_report():
                 e = dict()
                 e['asset_tag']     = row[0]
                 e['asset_desc']    = row[1]
-                e['facility_name'] = row[2]
+                e['facility_code'] = row[2]
                 e['arrival_dt']    = row[3]
                 e['depart_dt']     = row[4] 
                 e['dispose_dt']    = row[5]
@@ -475,7 +473,7 @@ def asset_report():
     
     #GET method
     search = """
-                SELECT facility_name 
+                SELECT facility_name
                 FROM facilities; 
              """                                                      # SQL search for every facility in DB.
     cur.execute(search)
@@ -519,18 +517,18 @@ def transfer_req():
 
         search = """
                     SELECT a.asset_tag, a.dispose_dt, f.facility_name
-                    FROM assets_at at
+                    FROM asset_at at
                     JOIN  facilities f
                     ON f.facility_pk = at.facility_fk
                     JOIN assets a
                     ON at.asset_fk = a.asset_pk
-                    WHERE a.asset_tag = %s AND at.transfering = 'false' AND at.transfered = 'false' AND at.requested = 'false';  
+                    WHERE at.asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s) AND at.transfering = 'false' AND at.transfered = 'false' AND at.requested = 'false';  
                  """                                             # SQL search DB for asset tag. 
         cur.execute(search,(asset_tag,))                    
         res = cur.fetchone()
 
         if not res:                                              # No match, do nothing.
-            error = "asset tag does not exist or \n transfer request for same asset needs to be approved or denied before making another request or \n asset is in the process of having a transfer" 
+            error = "Asset tag does not exist OR transfer request for same asset needs to be approved/denied before making another request OR asset is in the process of having a transfer" 
             return redirect(url_for('error', error=error)) 
         if res[1] != None:                                       # Disposed already, do nothing. 
             error = "asset was disposed"
@@ -552,7 +550,7 @@ def transfer_req():
                         WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag =%s) AND 
                                           transfering = 'false' AND transfered = 'false' AND requested = 'false';
                      """                                                                     #SQL create transfe request.   
-            cur.execute(create,(session['username'], asset_tag, source, dest, req_date,))
+            cur.execute(create,(session['username'], asset_tag, source, dest, req_date,asset_tag,))
             conn.commit()
             return render_template('req_success.html') 
 
@@ -613,14 +611,13 @@ def update_transit():
                             UPDATE asset_at
                             SET depart_dt = %s, transfered = 'true'
                             WHERE asset_fk = (SELECT asset_pk FROM assets WHERE asset_tag = %s) 
-                            AND requested = 'true'  AND 'transfering = 'true' AND transfered = 'false'; 
+                            AND requested = 'true' AND transfering = 'true' AND transfered = 'false'; 
 
                             INSERT INTO asset_at (asset_fk, facility_fk, arrival_dt, requested, transfering, transfered)
                             VALUES ((SELECT asset_pk FROM assets WHERE asset_tag = %s), 
-                                    (SELECT facility_pk WHERE facility_name = %s), 
-                                    %s, 'false', 'false', 'false'); 
+                                    %s,  %s, 'false', 'false', 'false'); 
                          """
-                cur.execute(update, (load_dt, unload_dt, session['transfer_id'], session['load_dt'], session['asset_tag'], session['asset_tag'], session['dest_fk'], session['unload_dt'],))
+                cur.execute(update, (load_dt, unload_dt, session['transfer_id'], load_dt, session['asset_tag'], session['asset_tag'], session['dest_fk'], unload_dt,))
                 conn.commit()
 
             return redirect(url_for('dashboard'))
@@ -632,7 +629,7 @@ def update_transit():
     session['transfer_id'] = request.args['id'] 
     
     search = """
-                SELECT ti.transfer_fk, a.asset_tag, ti.source_fk, ti.load_dt, ti.dest_fk, ti.unload_dt, u.username
+                SELECT ti.transfer_fk, a.asset_tag, ti.source_fk, ti.load_dt, ti.dest_fk, ti.unload_dt, u.username, tr.approve_dt
                 FROM transfer_info ti
                 JOIN assets a 
                 ON asset_fk = asset_pk 
@@ -652,9 +649,10 @@ def update_transit():
     session['dest_fk']     = res[4]
     session['unload_dt']   = res[5]
     session['approved_by'] = res[6]
+    session['approve_dt']  = res[7]
 
     search = """ 
-                SELECT facility_name 
+                SELECT facility_code
                 FROM facilities 
                 WHERE facility_pk = %s; 
              """   
@@ -664,7 +662,7 @@ def update_transit():
     session['source'] = res[0]
 
     search = """ 
-                SELECT facility_name 
+                SELECT facility_code 
                 FROM facilities 
                 WHERE facility_pk = %s; 
              """   
@@ -752,7 +750,7 @@ def approve_req():
     session['req_dt']       = res[5]
 
     search = """ 
-                SELECT facility_name 
+                SELECT facility_code 
                 FROM facilities 
                 WHERE facility_pk = %s; 
              """   
@@ -762,7 +760,7 @@ def approve_req():
     session['source'] = res[0]
 
     search = """ 
-                SELECT facility_name 
+                SELECT facility_code 
                 FROM facilities 
                 WHERE facility_pk = %s; 
              """   
