@@ -18,10 +18,7 @@ results = [];
 
 for row in res:
     e = dict()
-    if row[0] != None: 
-        e['fcode'] = row[0]
-    else:
-        e['fcode'] = "NULL"
+    e['fcode']         = row[0]
     e['facility_name'] = row[1]
     results.append(e)
 
