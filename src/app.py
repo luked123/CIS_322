@@ -119,75 +119,56 @@ def dashboard():
 
 
 # create_user page.
-@app.route('/create_user', methods=('POST', 'GET', ))
-def create_user():
+@app.route('/activate_user', methods=('POST',))
+def activate_user():
     # POST method. 
-    if request.method=='POST':
-        username = request.form['username']                 
-        password = request.form['password']
-        role     = request.form['role'] 
-        
-        if username == "":                                         
-            error = "username cannot be blank"
-            return redirect(url_for('error', error=error))  
-        if " " in username: 
-            error = "usernames cannot have spaces" 
-            return redirect(url_for('error', error=error))  
-        if password == "":
-            error = "password cannot be empty"
-            return redirect(url_for('error', error=error))  
-        if " " in username: 
-            error = "passwords cannot have spaces"
-            return redirect(url_for('error', error=error))
-        
-        check = """
-                    SELECT role 
-                    FROM roles
-                    WHERE role = %s; 
-                """                                             # SQL check if role is in DB
-        cur.execute(check,(role,))
-        res = cur.fetchone()
+    if request.method=='POST' and 'arguments' in request.form:
+        req=json.loads(request.form['arguments'])
 
-        if not res: 
-            create = """
-                        INSERT INTO roles (role)
-                        VALUES (%s); 
-                     """                                        # SQL create role 
-            cur.execute(create,(role,))
-            conn.commit()
+        username = req['username']
+        password = req['password']
+        role     = req['role'] 
+        dat = dict()
 
         search = """
-                    SELECT username
-                    FROM users
-                    WHERE username = %s; 
-                 """                                             # SQL searchs database for username entered.
-        cur.execute(search,(username,))
+                    SELECT role_pk FROM roles WHERE role = %s;
+                 """
+        cur.execute(search,(role,))
         res = cur.fetchone()
 
-        if not res:                                              # If response is an empty list, insert username/password pair.
-             create = """
-                        INSERT INTO users (username, password, active) 
-                        VALUES ( %s, %s, true);
-                     """                                         # SQL create username / password pair.
-             cur.execute(create,(username, password,))
-             conn.commit()
+        if not res:
+            create = """
+                        INSERT INTO roles (role) VALUES (%s); 
+                     """
+            cur.execute(create,(role,))
+        
 
-             update = """
-                            UPDATE users 
-                            SET role_fk = (SELECT role_pk FROM roles WHERE role = %s) 
-                            WHERE username = %s; 
-                      """                                        # SQL updates user with correct role. 
+        search = """
+                    SELECT username, active FROM users WHERE username = %s; 
+                 """
+        cur.execute(search,(username,))
+        res = cur.fetchone(); 
+        
+        if not res:
+            create = """
+                        INSERT INTO users (username, password, role_fk, active
+                        VALUES (%s, %s, (SELECT role_pk FROM roles where role = %s), 'true');
+                     """
+            cur.execute(create,(username,password,role,))
+            dat['result'] = "Created user " + username + ", user is now active"
+        else:
+            update = """
+                        UPDATE users 
+                        SET password = %s, active = 'true'
+                        WHERE username = %s; 
+                     """
+            cur.execute(update,(password,username,))
+            dat['result'] = "Activated user " + username
+        
+        conn.commit()
 
-             cur.execute(update,(role, username,))              
-             conn.commit()
-             return render_template('added.html')
-        else:                                                     
-             error = "username already exists"
-             return redirect(url_for('error', error=error)) 
-
-    # GET method
-    session['roles'] = ["Logistics Officer", "Facilities Officer"]     # Current roles at LOST DB.
-    return render_template('create_user.html')
+        data = json.dumps(dat)
+        return data
 
 
 # add_facility page.
