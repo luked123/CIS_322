@@ -1,10 +1,12 @@
 import sys
 import psycopg2
 
+# Prepares the users CSV file to be exported from the database. 
+
 conn = psycopg2.connect(dbname=sys.argv[1], host= '127.0.0.1 ' , port='5432')
 cur  = conn.cursor()
 
-string = "username,password,role,active\n"
+string = "username,password,role,active\n"        # Column headers
 
 search = """
             SELECT u.username, u.password, r.role, u.active

@@ -133,7 +133,7 @@ def activate_user():
 
         search = """
                     SELECT role_pk FROM roles WHERE role = %s;
-                 """
+                 """                                                   # Check if role exists or not. 
         cur.execute(search,(role,))
         res = cur.fetchone()
 
@@ -141,14 +141,14 @@ def activate_user():
             create = """
                         INSERT INTO roles (role) VALUES (%s); 
                      """
-            cur.execute(create,(role,))
+            cur.execute(create,(role,))                                 # Creates role if there isn't.
         
 
         search = """
                     SELECT username, active FROM users WHERE username = %s; 
                  """
         cur.execute(search,(username,))
-        res = cur.fetchone(); 
+        res = cur.fetchone();                                           # Search for username. 
         
         if not res:
             create = """
@@ -156,7 +156,7 @@ def activate_user():
                         VALUES (%s, %s, (SELECT role_pk FROM roles WHERE role = %s), 'true');
                      """
             cur.execute(create,(username,password,role,))
-            dat['result'] = "Created user " + username + ", user is now active"
+            dat['result'] = "Created user " + username + ", user is now active"          # Creates the user if doesn't exist 
         else:
             update = """
                         UPDATE users 
@@ -164,7 +164,7 @@ def activate_user():
                         WHERE username = %s; 
                      """
             cur.execute(update,(password,username,))
-            dat['result'] = "Activated user " + username
+            dat['result'] = "Activated user " + username                                #  Activates user and updates password
         
         conn.commit()
 
@@ -179,24 +179,24 @@ def revoke_user():
     if request.method=='POST' and 'arguments' in request.form:
         req = json.loads(request.form['arguments'])
 
-        username = req['username']
+        username = req['username']                                          # Username to be revoked.
         dat = dict()
 
         search="""
-                  SELECT username FROM users WHERE username = %s;
-               """
+                  SELECT username FROM users WHERE username = %s;         
+               """                                                          # Search the database for username. 
         cur.execute(search,(username,))
         res = cur.fetchone()
 
         if not res:
-            dat['result'] = "Username: " + username + " does not exist"
+            dat['result'] = "Username: " + username + " does not exist"     # User does not exist.
         else:
             update = """
                         UPDATE users
                         SET active = 'false'
                         WHERE username = %s
                      """
-            cur.execute(update,(username,))
+            cur.execute(update,(username,))                                  #  Revoke user and give confirmation. 
             dat['result'] = "Revoked user: " + username 
 
         conn.commit()
@@ -227,7 +227,7 @@ def add_facility():
                     SELECT facility_name
                     FROM facilities
                     WHERE facility_name = %s OR facility_code =%s;  
-                 """                                                   #SQL search DB for matching facility names.
+                 """                                                           # SQL search DB for matching facility names.
 
         cur.execute(search,(facility_name,facility_code,))
         res = cur.fetchall()
@@ -386,7 +386,7 @@ def dispose_asset():
                         UPDATE assets
                         SET dispose_dt = %s 
                         WHERE asset_tag = %s; 
-                     """                                                                     #SQL change asset to disposed. 
+                     """                                         # SQL change asset to disposed. 
             cur.execute(change,(dispose_dt, asset_tag,))
             conn.commit()
             return redirect(url_for('dashboard')) 
@@ -395,7 +395,7 @@ def dispose_asset():
     search = """
                 SELECT asset_tag, asset_desc, dispose_dt
                 FROM assets; 
-             """                                                       # SQL search for every asset in DB.
+             """                                                 # SQL search for every asset in DB.
     cur.execute(search)
     res = cur.fetchall()
    

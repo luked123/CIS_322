@@ -3,6 +3,8 @@ import os
 import psycopg2
 import sys
 
+# Takes the necessary data from CSV files and imports data into the database. 
+
 conn = psycopg2.connect(dbname = sys.argv[1], host='127.0.0.1', port='5432')
 cur = conn.cursor()
 

@@ -3,10 +3,12 @@ import psycopg2
 import time
 from datetime import date
 
+# Prepares the assets CSV file to be exported from the database.
+
 conn = psycopg2.connect(dbname=sys.argv[1], host= '127.0.0.1 ' , port='5432')
 cur  = conn.cursor()
 
-string = "asset_tag,description,facility,acquired,disposed\n"
+string = "asset_tag,description,facility,acquired,disposed\n"   # Column headers. 
 
 search = """
             SELECT a.asset_tag, a.asset_desc, f.facility_code, a.initial_dt, a.dispose_dt
@@ -15,7 +17,6 @@ search = """
             ON a.initial_fk = f.facility_pk
          """
 cur.execute(search,)
-
 res = cur.fetchall()
 
 results = []; 
@@ -29,7 +30,7 @@ for row in res:
     if row[4] != None: 
          e['disposed'] = row[4].strftime('%Y-%m-%d')
     else:
-        e['disposed'] = "NULL"
+        e['disposed'] = "NULL"                            
 
     results.append(e)
 

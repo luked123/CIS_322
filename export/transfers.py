@@ -3,10 +3,12 @@ import psycopg2
 import time
 from datetime import date
 
+# Prepares the transfers CSV file to be exported from the database
+
 conn = psycopg2.connect(dbname=sys.argv[1], host= '127.0.0.1 ' , port='5432')
 cur  = conn.cursor()
 
-string = "asset_tag,request_by,request_dt,approve_by,approve_dt,source,destination,load_dt,unload_dt\n"
+string = "asset_tag,request_by,request_dt,approve_by,approve_dt,source,destination,load_dt,unload_dt\n"   # Column headers
 
 search = """
             SELECT a.asset_tag, lo.username, tr.req_dt, fo.username, 
@@ -26,7 +28,6 @@ search = """
             ON ti.dest_fk   = d.facility_pk
          """
 cur.execute(search,)
-
 res = cur.fetchall()
 
 results = []; 
