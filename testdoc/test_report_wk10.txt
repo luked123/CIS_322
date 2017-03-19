@@ -1,1 +1,11 @@
-Initial file
+Test Plan
+
+Installation went smoothly, no problem. 
+Successfully created two users with activate_user.py. 
+Logged in and added a few assets, and two facilities. Initiated some transfer requests with the logistics officer, maybe add a dashboard button on the transfer request page, it seems that its missing one. Does not catch the error that the transfer has been ordered for the same facility the asset is at. 
+When request is sent and approved, the logistics officer can input load and unload time, no problem. 
+Asset Report seems to be showing the right info, no problem on that end either. 
+Revoke user returns a error message if the user is not in the database but does not return a message if the user is already revoked. 
+
+Overall, very good implementation of the project, seems solid withstand my testing, a few minor issues with the UI that could be improved but nothing critical. Good job! 
+
