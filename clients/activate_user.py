@@ -1,6 +1,5 @@
 import sys
 import json
-import datetime
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 
@@ -22,7 +21,6 @@ def main():
         return "Roles supported are either 'facofc' (Facilities Officer) or 'logofc' (Logistics Officer)\n"
 
     print("Activating user: %s"%args['username'])
-    print(url)
 
     sargs = dict()
     sargs['arguments'] = json.dumps(args)
