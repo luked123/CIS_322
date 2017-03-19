@@ -4,8 +4,8 @@ from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 
 def main():
-    if len(sys.argv) < 4:
-        print("Usage: python3 %s <host_url> <username> <password> <role> \n"%sys.argv[0])
+    if len(sys.argv) < 5:
+        print("Usage: python3 %s <host_url> <username> <password> <role>"%sys.argv[0])
         return
     
     url = sys.argv[1] + 'activate_user'
@@ -18,7 +18,8 @@ def main():
     elif sys.argv[4] == "logofc":
         args['role'] = "Logistics Officer"
     else:
-        return "Roles supported are either 'facofc' (Facilities Officer) or 'logofc' (Logistics Officer)\n"
+        print("Roles supported are either 'facofc' (Facilities Officer) or 'logofc' (Logistics Officer)")
+        return
 
     print("Activating user: %s"%args['username'])
 

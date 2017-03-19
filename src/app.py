@@ -49,7 +49,8 @@ def login():
             session['user_role'] = res[1]                    # Users role.
             session['active']    = res[2]
             if session['active'] != True:
-                session['logged_in'] = False                     # Logged in.
+                session['logged_in'] = False                 # Logged in.
+                return render_template('revoked.html')
             else: 
                 session['logged_in'] = True
             return redirect(url_for('dashboard'))
@@ -123,7 +124,7 @@ def dashboard():
 def activate_user():
     # POST method. 
     if request.method=='POST' and 'arguments' in request.form:
-        req=json.loads(request.form['arguments'])
+        req = json.loads(request.form['arguments'])
 
         username = req['username']
         password = req['password']
@@ -167,6 +168,39 @@ def activate_user():
         
         conn.commit()
 
+        data = json.dumps(dat)
+        return data
+
+
+#revoke_user api.
+@app.route('/revoke_user', methods=('POST',))
+def revoke_user():
+    # POST method. 
+    if request.method=='POST' and 'arguments' in request.form:
+        req = json.loads(request.form['arguments'])
+
+        username = req['username']
+        dat = dict()
+
+        search="""
+                  SELECT username FROM users WHERE username = %s;
+               """
+        cur.execute(search,(username,))
+        res = cur.fetchone()
+
+        if not res:
+            dat['result'] = "Username: " + username + " does not exist"
+        else:
+            update = """
+                        UPDATE users
+                        SET active = 'false'
+                        WHERE username = %s
+                     """
+            cur.execute(update,(username,))
+            dat['result'] = "Revoked user: " + username 
+
+        conn.commit()
+        
         data = json.dumps(dat)
         return data
 
