@@ -507,7 +507,7 @@ def asset_report():
 # transfer_report page. 
 @app.route('/transfer_report')
 def transfer_report():
-    return
+    return render_template('transfer_report.html')
 
 
 # transfer_req page. 
