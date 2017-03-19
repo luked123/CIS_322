@@ -118,7 +118,7 @@ def dashboard():
     return render_template('dashboard.html')
 
 
-# create_user page.
+# activate_user api.
 @app.route('/activate_user', methods=('POST',))
 def activate_user():
     # POST method. 
@@ -151,8 +151,8 @@ def activate_user():
         
         if not res:
             create = """
-                        INSERT INTO users (username, password, role_fk, active
-                        VALUES (%s, %s, (SELECT role_pk FROM roles where role = %s), 'true');
+                        INSERT INTO users (username, password, role_fk, active)
+                        VALUES (%s, %s, (SELECT role_pk FROM roles WHERE role = %s), 'true');
                      """
             cur.execute(create,(username,password,role,))
             dat['result'] = "Created user " + username + ", user is now active"
